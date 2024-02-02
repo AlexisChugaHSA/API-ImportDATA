@@ -1,0 +1,22 @@
+Preguntas:
+* para put id en el link o en el json--- delete y get
+* fpk nulos?
+
+*para post direccion -- verificar id paid e id ciudad?
+* para post empresa -- verificar nombre
+* para post usuario -- verificar el usuario
+* post membresias -- verificar tipo
+* post detalle-factura -- verificar id pa id pr id fac
+* post cupon -- codigo
+* post cup -- id u id c id pa
+* post categoria -- nombre
+* facturacion -- verificar?
+* LPU
+******pagos y persona..pu - post - q verificar?****
+
+
+*****************************************
+put id cabecera de url
+
+controlar solamente usuarios y personas
+jwt administrador CRUDS
