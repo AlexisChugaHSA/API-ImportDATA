@@ -144,7 +144,7 @@ class Consulta_Imp(MethodView):
         cursor=obtener_conexion().cursor()
         cursor.execute("""select NOMBRE_MARCA,sum(UNIDADES) from bd_importacion.importacion join bd_importacion.marcas on importacion.id_marca=marcas.id_marca
                                {0} 
-                               group by NOMBRE_MARCA order by sum(UNIDADES) DESC LIMIT 7
+                               group by NOMBRE_MARCA order by sum(UNIDADES) DESC LIMIT 10
                                """.format(where_clause))
         result=cursor.fetchall()
         cursor.close()
@@ -169,7 +169,7 @@ class Consulta_Imp(MethodView):
         cursor=obtener_conexion().cursor()
         cursor.execute("""select NOMBRE_MARCA,sum(FOB) from bd_importacion.importacion join bd_importacion.marcas on importacion.id_marca=marcas.id_marca
                                {0} 
-                               group by NOMBRE_MARCA order by sum(FOB) DESC LIMIT 7
+                               group by NOMBRE_MARCA order by sum(FOB) DESC LIMIT 10
                                """.format(where_clause))
         result=cursor.fetchall()
         cursor.close()
@@ -344,7 +344,7 @@ GROUP BY
     i.razon_social, total_fob.suma_total_fob
 ORDER BY 
     Porcentaje_FOB DESC
-LIMIT 20;
+LIMIT 10;
 
                                """.format(where_clause))
         result=cursor.fetchall()
@@ -354,3 +354,16 @@ LIMIT 20;
                          'importador':fila[0], 'total_fob':fila[1], 'porcentaje_fob':fila[2]}
             importaciones.append(importacion)
         return importaciones
+
+@blp.route("/consulta-anios-fecha-despacho")
+class AniosDespacho(MethodView):
+    def get(self):
+        anios=[]
+        cursor=obtener_conexion().cursor()
+        cursor.execute("SELECT DISTINCT YEAR(fecha_despacho) AS anio FROM bd_importacion.importacion WHERE fecha_despacho IS NOT NULL ORDER BY anio ASC;")
+        result=cursor.fetchall()
+        cursor.close()
+        for fila in result:
+            anio={'anio':fila[0]}
+            anios.append(anio)
+        return anios
