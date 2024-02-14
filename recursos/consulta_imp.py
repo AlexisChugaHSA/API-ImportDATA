@@ -220,17 +220,14 @@ class Consulta_Imp(MethodView):
         cursor=obtener_conexion().cursor()
         cursor.execute("""SELECT 
     subconsulta.Año,
-    subconsulta.Nombre_Marca_Agrupada,
+    subconsulta.Nombre_Marca,
     subconsulta.Total_fob,
     ROUND((subconsulta.Total_fob / total_por_año.total_fob_por_año) * 100, 2) AS Porcentaje
 FROM
     (
         SELECT 
             Year(Fecha_despacho) AS Año,
-            CASE 
-                WHEN marcas.Nombre_Marca IN ('Blaupunkt', 'Aiwa', 'Ecoline', 'Jvc', 'Coby', 'Evvo', 'Nakamichi', 'Toshiba', 'Erion', 'Daewoo', 'Philips', 'Diggio', 'Premier', 'Rca', 'American Star', 'Xtratech', 'Ams', 'Magnavox', 'Haier') THEN 'Otros'
-                ELSE marcas.Nombre_Marca
-            END AS Nombre_Marca_Agrupada,
+            marcas.Nombre_Marca,
             SUM(importacion.fob) AS Total_fob
         FROM 
             bd_importacion.importacion
@@ -240,7 +237,7 @@ FROM
             importacion.Fecha_despacho IS NOT NULL
             {0}
         GROUP BY 
-            Year(importacion.Fecha_despacho), Nombre_Marca_Agrupada
+            Year(importacion.Fecha_despacho), marcas.Nombre_Marca
     ) AS subconsulta
 JOIN 
     (
@@ -259,7 +256,7 @@ JOIN
     ) AS total_por_año ON subconsulta.Año = total_por_año.Año
 
 ORDER BY 
-    subconsulta.Año, subconsulta.Nombre_Marca_Agrupada;
+    subconsulta.Año, subconsulta.Nombre_Marca;
                                """.format(where_clause))
         result=cursor.fetchall()
         cursor.close()
@@ -284,22 +281,19 @@ class Consulta_Imp(MethodView):
         cursor=obtener_conexion().cursor()
         cursor.execute("""SELECT 
     Year(Fecha_despacho) AS Año,
-    CASE 
-        WHEN Nombre_Marca IN ('Blaupunkt', 'Aiwa', 'Ecoline', 'Jvc', 'Coby', 'Evvo', 'Nakamichi', 'Toshiba', 'Erion', 'Daewoo', 'Philips', 'Diggio', 'Premier', 'Rca', 'American Star', 'Xtratech', 'Ams', 'Magnavox', 'Haier') THEN 'Otros'
-        ELSE Nombre_Marca
-    END AS Nombre_Marca_Agrupada,
+    Nombre_Marca,
     AVG(precio_unitario) AS Precio_Promedio
 FROM 
     bd_importacion.importacion
 JOIN 
     bd_importacion.marcas ON importacion.id_marca = marcas.id_marca
 WHERE 
-	Fecha_despacho IS NOT NULL {0}
-                       
+    Fecha_despacho IS NOT NULL {0}
 GROUP BY 
-    Year(Fecha_despacho), Nombre_Marca_Agrupada
+    Year(Fecha_despacho), Nombre_Marca
 ORDER BY 
-    Year(Fecha_despacho), Nombre_Marca_Agrupada;
+    Year(Fecha_despacho), Nombre_Marca; 
+
 """.format(where_clause))
         result=cursor.fetchall()
         cursor.close()
@@ -367,3 +361,64 @@ class AniosDespacho(MethodView):
             anio={'anio':fila[0]}
             anios.append(anio)
         return anios
+    
+@blp.route("/consulta-share-por-segmento")
+class Consulta_Imp(MethodView):
+    @blp.arguments(ConsultaImpSch)
+    def post(self,user_data):  
+        where_clause = ""  # '1' es siempre verdadero, lo que permite agregar condiciones de manera más fácil
+        if 'anio' in user_data and isinstance(user_data['anio'], list) and len(user_data['anio']) > 0:
+            where_clause += " AND Year(importacion.Fecha_despacho) IN ({0})".format(", ".join(map(str, user_data['anio'])))
+        if 'mes' in user_data and isinstance(user_data['mes'], list) and len(user_data['mes']) > 0:
+            where_clause += " AND MONTH(importacion.Fecha_despacho) IN ({0})".format(", ".join(map(str, user_data['mes'])))
+        if 'nombre_marca' in user_data and isinstance(user_data['nombre_marca'], list) and len(user_data['nombre_marca']) > 0:
+            where_clause += " AND marcas.Nombre_Marca IN ({0})".format(", ".join(["'{0}'".format(marca) for marca in user_data['nombre_marca']]))
+        importaciones=[]
+        cursor=obtener_conexion().cursor()
+        cursor.execute("""SELECT 
+    subconsulta.Año,
+    subconsulta.CARACTERISTICA_AGREGADA,
+    subconsulta.Total_fob,
+    ROUND((subconsulta.Total_fob / total_por_año.total_fob_por_año) * 100, 2) AS Porcentaje
+FROM
+    (
+        SELECT 
+            Year(Fecha_despacho) AS Año,
+            importacion.CARACTERISTICA_AGREGADA,
+            SUM(importacion.fob) AS Total_fob
+        FROM 
+            bd_importacion.importacion
+        JOIN 
+            bd_importacion.marcas ON importacion.id_marca = marcas.id_marca
+        WHERE 
+            importacion.Fecha_despacho IS NOT NULL
+            {0}
+        GROUP BY 
+            Year(importacion.Fecha_despacho), importacion.CARACTERISTICA_AGREGADA
+    ) AS subconsulta
+JOIN 
+    (
+        SELECT 
+            Year(Fecha_despacho) AS Año,
+            SUM(fob) AS total_fob_por_año
+        FROM 
+            bd_importacion.importacion
+                       JOIN 
+            bd_importacion.marcas ON importacion.id_marca = marcas.id_marca
+        WHERE 
+            Fecha_despacho IS NOT NULL 
+            {0}
+        GROUP BY 
+            Year(Fecha_despacho)
+    ) AS total_por_año ON subconsulta.Año = total_por_año.Año
+
+ORDER BY 
+    subconsulta.Año, subconsulta.CARACTERISTICA_AGREGADA;
+                               """.format(where_clause))
+        result=cursor.fetchall()
+        cursor.close()
+        for fila in result:
+            importacion={
+                         'anio':fila[0], 'caracteristica':fila[1], 'fob':fila[2], 'porcentaje_fob':fila[3]}
+            importaciones.append(importacion)
+        return importaciones
