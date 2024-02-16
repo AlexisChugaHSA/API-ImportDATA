@@ -422,3 +422,79 @@ ORDER BY
                          'anio':fila[0], 'caracteristica':fila[1], 'fob':fila[2], 'porcentaje_fob':fila[3]}
             importaciones.append(importacion)
         return importaciones
+
+@blp.route("/consulta-características-por-marca")
+class Consulta_Imp(MethodView):
+    @blp.arguments(ConsultaImpSch)
+    def post(self,user_data):  
+        where_clause = ""  # '1' es siempre verdadero, lo que permite agregar condiciones de manera más fácil
+        if 'anio' in user_data and isinstance(user_data['anio'], list) and len(user_data['anio']) > 0:
+            where_clause += " AND Year(importacion.Fecha_despacho) IN ({0})".format(", ".join(map(str, user_data['anio'])))
+        if 'mes' in user_data and isinstance(user_data['mes'], list) and len(user_data['mes']) > 0:
+            where_clause += " AND MONTH(importacion.Fecha_despacho) IN ({0})".format(", ".join(map(str, user_data['mes'])))
+        if 'nombre_marca' in user_data and isinstance(user_data['nombre_marca'], list) and len(user_data['nombre_marca']) > 0:
+            where_clause += " AND marcas.Nombre_Marca IN ({0})".format(", ".join(["'{0}'".format(marca) for marca in user_data['nombre_marca']]))
+        importaciones=[]
+        cursor=obtener_conexion().cursor()
+        cursor.execute("""SELECT 
+    t1.Marca,
+    t1.Total_Unidades,
+    t1.Total_FOB,
+    t2.CARACTERISTICA_AGREGADA,
+    t2.Unidades_por_caracteristica,
+    t2.Fob_por_caracteristica
+FROM
+    (
+        SELECT 
+            marcas.nombre_marca AS Marca,
+            SUM(importacion.UNIDADES) AS Total_Unidades,
+            SUM(importacion.FOB) AS Total_FOB
+        FROM 
+            bd_importacion.importacion
+        JOIN 
+            bd_importacion.marcas ON importacion.id_marca = marcas.id_marca
+        WHERE 
+            importacion.Fecha_despacho IS NOT NULL AND importacion.CARACTERISTICA_AGREGADA IS NOT NULL 
+                       {0}
+        GROUP BY 
+            marcas.nombre_marca
+    ) t1
+LEFT JOIN
+    (
+        SELECT 
+            marcas.nombre_marca AS Marca,
+            importacion.CARACTERISTICA_AGREGADA,
+            SUM(importacion.UNIDADES) AS Unidades_por_caracteristica,
+            SUM(importacion.fob) AS Fob_por_caracteristica
+        FROM 
+            bd_importacion.importacion
+        JOIN 
+            bd_importacion.marcas ON importacion.id_marca = marcas.id_marca
+        WHERE 
+            importacion.Fecha_despacho IS NOT NULL AND importacion.CARACTERISTICA_AGREGADA IS NOT NULL 
+            {0}
+        GROUP BY 
+            marcas.nombre_marca, importacion.CARACTERISTICA_AGREGADA
+    ) t2 ON t1.Marca = t2.Marca
+ORDER BY 
+    t1.Marca, t2.CARACTERISTICA_AGREGADA;
+                               """.format(where_clause))
+        result=cursor.fetchall()
+        cursor.close()
+        respuesta_final = {}
+        caracteristicas_por_marca = []
+        for fila in result:
+            importacion = {
+                'carcateristica': fila[3],
+                'car_unidades': fila[4],
+                'car_fob': fila[5]
+            }
+            if fila[0] not in respuesta_final:
+                respuesta_final[fila[0]] = {
+                    'marca': fila[0],
+                    'total_fob': fila[2],
+                    'total_unidades': fila[1],
+                    'carcateristicas': []
+            }
+            respuesta_final[fila[0]]['carcateristicas'].append(importacion)
+        return respuesta_final
