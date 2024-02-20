@@ -138,6 +138,8 @@ class Consulta_Imp(MethodView):
             where_clause += " AND MONTH(fecha_despacho) IN ({0})".format(", ".join(map(str, user_data['mes'])))
         if 'nombre_marca' in user_data and isinstance(user_data['nombre_marca'], list) and len(user_data['nombre_marca']) > 0:
             where_clause += " AND nombre_marca IN ({0})".format(", ".join(["'{0}'".format(marca) for marca in user_data['nombre_marca']]))
+        if 'caracteristica' in user_data and isinstance(user_data['caracteristica'], list) and len(user_data['caracteristica']) > 0:
+            where_clause += " AND caracteristica_agregada IN ({0})".format(", ".join(["'{0}'".format(caracteristica) for caracteristica in user_data['caracteristica']]))
 
 
         importaciones=[]
@@ -165,6 +167,9 @@ class Consulta_Imp(MethodView):
             where_clause += " AND MONTH(fecha_despacho) IN ({0})".format(", ".join(map(str, user_data['mes'])))
         if 'nombre_marca' in user_data and isinstance(user_data['nombre_marca'], list) and len(user_data['nombre_marca']) > 0:
             where_clause += " AND nombre_marca IN ({0})".format(", ".join(["'{0}'".format(marca) for marca in user_data['nombre_marca']]))
+        if 'caracteristica' in user_data and isinstance(user_data['caracteristica'], list) and len(user_data['caracteristica']) > 0:
+            where_clause += " AND caracteristica_agregada IN ({0})".format(", ".join(["'{0}'".format(caracteristica) for caracteristica in user_data['caracteristica']]))
+       
         importaciones=[]
         cursor=obtener_conexion().cursor()
         cursor.execute("""select NOMBRE_MARCA,sum(FOB) from bd_importacion.importacion join bd_importacion.marcas on importacion.id_marca=marcas.id_marca
@@ -190,6 +195,10 @@ class Consulta_Imp(MethodView):
             where_clause += " AND MONTH(fecha_despacho) IN ({0})".format(", ".join(map(str, user_data['mes'])))
         if 'nombre_marca' in user_data and isinstance(user_data['nombre_marca'], list) and len(user_data['nombre_marca']) > 0:
             where_clause += " AND nombre_marca IN ({0})".format(", ".join(["'{0}'".format(marca) for marca in user_data['nombre_marca']]))
+        if 'caracteristica' in user_data and isinstance(user_data['caracteristica'], list) and len(user_data['caracteristica']) > 0:
+            where_clause += " AND caracteristica_agregada IN ({0})".format(", ".join(["'{0}'".format(caracteristica) for caracteristica in user_data['caracteristica']]))
+       
+        
         importaciones=[]
         cursor=obtener_conexion().cursor()
         cursor.execute("""select Year(Fecha_despacho) as Año,sum(FOB), sum(unidades) 
@@ -216,6 +225,9 @@ class Consulta_Imp(MethodView):
             where_clause += " AND MONTH(importacion.Fecha_despacho) IN ({0})".format(", ".join(map(str, user_data['mes'])))
         if 'nombre_marca' in user_data and isinstance(user_data['nombre_marca'], list) and len(user_data['nombre_marca']) > 0:
             where_clause += " AND marcas.Nombre_Marca IN ({0})".format(", ".join(["'{0}'".format(marca) for marca in user_data['nombre_marca']]))
+        if 'caracteristica' in user_data and isinstance(user_data['caracteristica'], list) and len(user_data['caracteristica']) > 0:
+            where_clause += " AND caracteristica_agregada IN ({0})".format(", ".join(["'{0}'".format(caracteristica) for caracteristica in user_data['caracteristica']])) 
+        
         importaciones=[]
         cursor=obtener_conexion().cursor()
         cursor.execute("""SELECT 
@@ -277,6 +289,9 @@ class Consulta_Imp(MethodView):
             where_clause += " AND MONTH(fecha_despacho) IN ({0})".format(", ".join(map(str, user_data['mes'])))
         if 'nombre_marca' in user_data and isinstance(user_data['nombre_marca'], list) and len(user_data['nombre_marca']) > 0:
             where_clause += " AND nombre_marca IN ({0})".format(", ".join(["'{0}'".format(marca) for marca in user_data['nombre_marca']]))
+        if 'caracteristica' in user_data and isinstance(user_data['caracteristica'], list) and len(user_data['caracteristica']) > 0:
+            where_clause += " AND caracteristica_agregada IN ({0})".format(", ".join(["'{0}'".format(caracteristica) for caracteristica in user_data['caracteristica']]))        
+        
         importaciones=[]
         cursor=obtener_conexion().cursor()
         cursor.execute("""SELECT 
@@ -315,6 +330,9 @@ class Consulta_Imp(MethodView):
             where_clause += " AND MONTH(fecha_despacho) IN ({0})".format(", ".join(map(str, user_data['mes'])))
         if 'nombre_marca' in user_data and isinstance(user_data['nombre_marca'], list) and len(user_data['nombre_marca']) > 0:
             where_clause += " AND nombre_marca IN ({0})".format(", ".join(["'{0}'".format(marca) for marca in user_data['nombre_marca']]))
+        if 'caracteristica' in user_data and isinstance(user_data['caracteristica'], list) and len(user_data['caracteristica']) > 0:
+            where_clause += " AND caracteristica_agregada IN ({0})".format(", ".join(["'{0}'".format(caracteristica) for caracteristica in user_data['caracteristica']]))        
+                
         importaciones=[]
         cursor=obtener_conexion().cursor()
         cursor.execute("""SELECT 
@@ -349,18 +367,7 @@ LIMIT 10;
             importaciones.append(importacion)
         return importaciones
 
-@blp.route("/consulta-anios-fecha-despacho")
-class AniosDespacho(MethodView):
-    def get(self):
-        anios=[]
-        cursor=obtener_conexion().cursor()
-        cursor.execute("SELECT DISTINCT YEAR(fecha_despacho) AS anio FROM bd_importacion.importacion WHERE fecha_despacho IS NOT NULL ORDER BY anio ASC;")
-        result=cursor.fetchall()
-        cursor.close()
-        for fila in result:
-            anio={'anio':fila[0]}
-            anios.append(anio)
-        return anios
+
     
 @blp.route("/consulta-share-por-segmento")
 class Consulta_Imp(MethodView):
@@ -373,6 +380,9 @@ class Consulta_Imp(MethodView):
             where_clause += " AND MONTH(importacion.Fecha_despacho) IN ({0})".format(", ".join(map(str, user_data['mes'])))
         if 'nombre_marca' in user_data and isinstance(user_data['nombre_marca'], list) and len(user_data['nombre_marca']) > 0:
             where_clause += " AND marcas.Nombre_Marca IN ({0})".format(", ".join(["'{0}'".format(marca) for marca in user_data['nombre_marca']]))
+        if 'caracteristica' in user_data and isinstance(user_data['caracteristica'], list) and len(user_data['caracteristica']) > 0:
+            where_clause += " AND caracteristica_agregada IN ({0})".format(", ".join(["'{0}'".format(caracteristica) for caracteristica in user_data['caracteristica']]))        
+                   
         importaciones=[]
         cursor=obtener_conexion().cursor()
         cursor.execute("""SELECT 
@@ -434,6 +444,9 @@ class Consulta_Imp(MethodView):
             where_clause += " AND MONTH(importacion.Fecha_despacho) IN ({0})".format(", ".join(map(str, user_data['mes'])))
         if 'nombre_marca' in user_data and isinstance(user_data['nombre_marca'], list) and len(user_data['nombre_marca']) > 0:
             where_clause += " AND marcas.Nombre_Marca IN ({0})".format(", ".join(["'{0}'".format(marca) for marca in user_data['nombre_marca']]))
+        if 'caracteristica' in user_data and isinstance(user_data['caracteristica'], list) and len(user_data['caracteristica']) > 0:
+            where_clause += " AND caracteristica_agregada IN ({0})".format(", ".join(["'{0}'".format(caracteristica) for caracteristica in user_data['caracteristica']]))        
+                 
         importaciones=[]
         cursor=obtener_conexion().cursor()
         cursor.execute("""SELECT 
@@ -498,3 +511,71 @@ ORDER BY
             }
             respuesta_final[fila[0]]['carcateristicas'].append(importacion)
         return respuesta_final
+
+@blp.route("/consulta-ventas-por-importador")
+class Consulta_Imp(MethodView):
+    @blp.arguments(ConsultaImpSch)
+    def post(self,user_data):  
+        where_clause = ""  # '1' es siempre verdadero, lo que permite agregar condiciones de manera más fácil
+        if 'anio' in user_data and isinstance(user_data['anio'], list) and len(user_data['anio']) > 0:
+            where_clause += " AND YEAR(fecha_despacho) IN ({0})".format(", ".join(map(str, user_data['anio'])))
+        if 'mes' in user_data and isinstance(user_data['mes'], list) and len(user_data['mes']) > 0:
+            where_clause += " AND MONTH(fecha_despacho) IN ({0})".format(", ".join(map(str, user_data['mes'])))
+        if 'nombre_marca' in user_data and isinstance(user_data['nombre_marca'], list) and len(user_data['nombre_marca']) > 0:
+            where_clause += " AND nombre_marca IN ({0})".format(", ".join(["'{0}'".format(marca) for marca in user_data['nombre_marca']]))
+        if 'caracteristica' in user_data and isinstance(user_data['caracteristica'], list) and len(user_data['caracteristica']) > 0:
+            where_clause += " AND caracteristica_agregada IN ({0})".format(", ".join(["'{0}'".format(caracteristica) for caracteristica in user_data['caracteristica']]))        
+          
+        importaciones=[]
+        cursor=obtener_conexion().cursor()
+        cursor.execute("""SELECT 
+    importador.razon_social,
+    SUM(importacion.FOB) AS FOB,
+    SUM(importacion.UNIDADES) AS UNIDADES
+FROM 
+    bd_importacion.importacion 
+JOIN 
+    bd_importacion.importador ON importacion.id_importador = importador.id_importador
+JOIN 
+    bd_importacion.marcas ON importacion.id_marca = marcas.id_marca
+WHERE 
+	importacion.Fecha_despacho IS NOT NULL 
+    {0}
+GROUP BY 
+	 importador.razon_social
+ORDER BY 
+    FOB DESC;
+                               """.format(where_clause))
+        result=cursor.fetchall()
+        cursor.close()
+        for fila in result:
+            importacion={
+                         'importador':fila[0], 'fob':fila[1], 'unidades':fila[2]}
+            importaciones.append(importacion)
+        return importaciones
+    
+@blp.route("/consulta-anios-fecha-despacho")
+class AniosDespacho(MethodView):
+    def get(self):
+        anios=[]
+        cursor=obtener_conexion().cursor()
+        cursor.execute("SELECT DISTINCT YEAR(fecha_despacho) AS anio FROM bd_importacion.importacion WHERE fecha_despacho IS NOT NULL ORDER BY anio ASC;")
+        result=cursor.fetchall()
+        cursor.close()
+        for fila in result:
+            anio={'anio':fila[0]}
+            anios.append(anio)
+        return anios
+    
+@blp.route("/consulta-filtro-caracteristicas")
+class AniosDespacho(MethodView):
+    def get(self):
+        carcateristicas=[]
+        cursor=obtener_conexion().cursor()
+        cursor.execute("SELECT DISTINCT CARACTERISTICA_AGREGADA  FROM bd_importacion.importacion WHERE CARACTERISTICA_AGREGADA IS NOT NULL;")
+        result=cursor.fetchall()
+        cursor.close()
+        for fila in result:
+            carcateristica={'caracteristica':fila[0]}
+            carcateristicas.append(carcateristica)
+        return carcateristicas

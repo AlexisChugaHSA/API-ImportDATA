@@ -274,7 +274,7 @@ class TiendasSch(Schema):
 class ConsultaImpSch(Schema):
     anio=fields.List(fields.Int())
     mes=fields.List(fields.Int())
-    caracteristica_modelo=fields.List(fields.Str())
+    caracteristica=fields.List(fields.Str())
     categoria=fields.List(fields.Str())
     nombre_marca=fields.List(fields.Str())
     nombre_empresa=fields.List(fields.Str())
