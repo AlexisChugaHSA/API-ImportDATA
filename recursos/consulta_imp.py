@@ -297,7 +297,7 @@ class Consulta_Imp(MethodView):
         cursor.execute("""SELECT 
     Year(Fecha_despacho) AS Año,
     Nombre_Marca,
-    AVG(precio_unitario) AS Precio_Promedio
+    ROUND(AVG(precio_unitario),2) AS Precio_Promedio
 FROM 
     bd_importacion.importacion
 JOIN 
@@ -344,19 +344,47 @@ FROM
 JOIN 
     bd_importacion.importador i ON f.id_importador = i.id_importador
 JOIN 
-    bd_importacion.marcas m ON f.id_marca = m.id_marca
+    bd_importacion.marcas ON f.id_marca = marcas.id_marca
 JOIN (
     SELECT 
+        id_importador,
         SUM(FOB) AS suma_total_fob
     FROM 
         bd_importacion.importacion
+JOIN 
+    bd_importacion.marcas ON importacion.id_marca = marcas.id_marca
+                       {0}
+    GROUP BY 
+        id_importador
+    ORDER BY 
+        suma_total_fob DESC
+    LIMIT 10
+) AS top_10_importadores ON f.id_importador = top_10_importadores.id_importador
+JOIN (
+    SELECT 
+        SUM(suma_total_fob) AS suma_total_fob
+    FROM 
+        (
+            SELECT 
+                id_importador,
+                SUM(FOB) AS suma_total_fob
+            FROM 
+                bd_importacion.importacion
+JOIN 
+    bd_importacion.marcas ON importacion.id_marca = marcas.id_marca
+                       {0}
+            GROUP BY 
+                id_importador
+            ORDER BY 
+                suma_total_fob DESC
+            LIMIT 10
+        ) AS top_10_importadores
 ) AS total_fob
-    {0}
+{0}
 GROUP BY 
     i.razon_social, total_fob.suma_total_fob
 ORDER BY 
-    Porcentaje_FOB DESC
-LIMIT 10;
+    Porcentaje_FOB DESC;
 
                                """.format(where_clause))
         result=cursor.fetchall()
