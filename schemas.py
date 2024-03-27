@@ -141,9 +141,9 @@ class ProductoUsuarioSchema(Schema):
     fecha_hasta=fields.Date()
 
 ######################################################
-class CategoriaProductoSch(Schema):
-    id_categoria_producto=fields.Int()
-    nombre_categoria_producto=fields.Str()
+class SubCategoriaProductoSch(Schema):
+    id_subcategoria=fields.Int()
+    subcategoria=fields.Str()
 
 class EmpresasImpSch(Schema):
     id_empresa=fields.Int()
@@ -272,10 +272,11 @@ class TiendasSch(Schema):
     direccion=fields.Str()
 
 class ConsultaImpSch(Schema):
+    id_producto=fields.Int()
     anio=fields.List(fields.Int())
     mes=fields.List(fields.Int())
     caracteristica=fields.List(fields.Str())
-    categoria=fields.List(fields.Str())
+    subcategoria=fields.List(fields.Str())
     nombre_marca=fields.List(fields.Str())
     nombre_empresa=fields.List(fields.Str())
     modelo_homologado=fields.List(fields.Str())

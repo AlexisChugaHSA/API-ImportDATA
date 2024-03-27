@@ -84,7 +84,6 @@ class Consulta_Imp(MethodView):
             where_clause += " AND YEAR(fecha_despacho) IN ({0})".format(", ".join(map(str, user_data['anio'])))
         if 'mes' in user_data and isinstance(user_data['mes'], list) and len(user_data['mes']) > 0:
             where_clause += " AND MONTH(fecha_despacho) IN ({0})".format(", ".join(map(str, user_data['mes'])))
-    
         if 'nombre_marca' in user_data and isinstance(user_data['nombre_marca'], list) and len(user_data['nombre_marca']) > 0:
             where_clause += " AND nombre_marca IN ({0})".format(", ".join(["'{0}'".format(marca) for marca in user_data['nombre_marca']]))
 
@@ -132,6 +131,8 @@ class Consulta_Imp(MethodView):
     @blp.arguments(ConsultaImpSch)
     def post(self,user_data):  
         where_clause = "WHERE 1"  # '1' es siempre verdadero, lo que permite agregar condiciones de manera más fácil
+        if 'id_producto' in user_data:
+            where_clause += " AND id_categoria_producto={0}".format(user_data['id_producto'])
         if 'anio' in user_data and isinstance(user_data['anio'], list) and len(user_data['anio']) > 0:
             where_clause += " AND YEAR(fecha_despacho) IN ({0})".format(", ".join(map(str, user_data['anio'])))
         if 'mes' in user_data and isinstance(user_data['mes'], list) and len(user_data['mes']) > 0:
@@ -140,11 +141,14 @@ class Consulta_Imp(MethodView):
             where_clause += " AND nombre_marca IN ({0})".format(", ".join(["'{0}'".format(marca) for marca in user_data['nombre_marca']]))
         if 'caracteristica' in user_data and isinstance(user_data['caracteristica'], list) and len(user_data['caracteristica']) > 0:
             where_clause += " AND caracteristica_agregada IN ({0})".format(", ".join(["'{0}'".format(caracteristica) for caracteristica in user_data['caracteristica']]))
-
-
+        if 'subcategoria' in user_data and isinstance(user_data['subcategoria'], list) and len(user_data['subcategoria']) > 0:
+            where_clause += " AND subcategoria IN ({0})".format(", ".join(["'{0}'".format(subcategoria) for subcategoria in user_data['subcategoria']]))
+        print(where_clause)
         importaciones=[]
         cursor=obtener_conexion().cursor()
-        cursor.execute("""select NOMBRE_MARCA,sum(UNIDADES) from bd_importacion.importacion join bd_importacion.marcas on importacion.id_marca=marcas.id_marca
+        cursor.execute("""select NOMBRE_MARCA,sum(UNIDADES) from bd_importacion.importacion 
+                       join bd_importacion.marcas on importacion.id_marca=marcas.id_marca
+                       join bd_importacion.categoria_importacion on importacion.id_subcategoria=categoria_importacion.id_subcategoria
                                {0} 
                                group by NOMBRE_MARCA order by sum(UNIDADES) DESC LIMIT 10
                                """.format(where_clause))
@@ -161,6 +165,8 @@ class Consulta_Imp(MethodView):
     @blp.arguments(ConsultaImpSch)
     def post(self,user_data):  
         where_clause = "WHERE 1"  # '1' es siempre verdadero, lo que permite agregar condiciones de manera más fácil
+        if 'id_producto' in user_data:
+            where_clause += " AND id_categoria_producto={0}".format(user_data['id_producto'])
         if 'anio' in user_data and isinstance(user_data['anio'], list) and len(user_data['anio']) > 0:
             where_clause += " AND YEAR(fecha_despacho) IN ({0})".format(", ".join(map(str, user_data['anio'])))
         if 'mes' in user_data and isinstance(user_data['mes'], list) and len(user_data['mes']) > 0:
@@ -169,10 +175,15 @@ class Consulta_Imp(MethodView):
             where_clause += " AND nombre_marca IN ({0})".format(", ".join(["'{0}'".format(marca) for marca in user_data['nombre_marca']]))
         if 'caracteristica' in user_data and isinstance(user_data['caracteristica'], list) and len(user_data['caracteristica']) > 0:
             where_clause += " AND caracteristica_agregada IN ({0})".format(", ".join(["'{0}'".format(caracteristica) for caracteristica in user_data['caracteristica']]))
-       
+        if 'subcategoria' in user_data and isinstance(user_data['subcategoria'], list) and len(user_data['subcategoria']) > 0:
+            where_clause += " AND subcategoria IN ({0})".format(", ".join(["'{0}'".format(subcategoria) for subcategoria in user_data['subcategoria']]))
+
+
         importaciones=[]
         cursor=obtener_conexion().cursor()
-        cursor.execute("""select NOMBRE_MARCA,sum(FOB) from bd_importacion.importacion join bd_importacion.marcas on importacion.id_marca=marcas.id_marca
+        cursor.execute("""select NOMBRE_MARCA,sum(FOB) from bd_importacion.importacion join 
+                       bd_importacion.marcas on importacion.id_marca=marcas.id_marca
+                       join bd_importacion.categoria_importacion on importacion.id_subcategoria=categoria_importacion.id_subcategoria
                                {0} 
                                group by NOMBRE_MARCA order by sum(FOB) DESC LIMIT 10
                                """.format(where_clause))
@@ -189,6 +200,8 @@ class Consulta_Imp(MethodView):
     @blp.arguments(ConsultaImpSch)
     def post(self,user_data):  
         where_clause = ""  # '1' es siempre verdadero, lo que permite agregar condiciones de manera más fácil
+        if 'id_producto' in user_data:
+            where_clause += " AND id_categoria_producto={0}".format(user_data['id_producto'])
         if 'anio' in user_data and isinstance(user_data['anio'], list) and len(user_data['anio']) > 0:
             where_clause += " AND YEAR(fecha_despacho) IN ({0})".format(", ".join(map(str, user_data['anio'])))
         if 'mes' in user_data and isinstance(user_data['mes'], list) and len(user_data['mes']) > 0:
@@ -197,12 +210,16 @@ class Consulta_Imp(MethodView):
             where_clause += " AND nombre_marca IN ({0})".format(", ".join(["'{0}'".format(marca) for marca in user_data['nombre_marca']]))
         if 'caracteristica' in user_data and isinstance(user_data['caracteristica'], list) and len(user_data['caracteristica']) > 0:
             where_clause += " AND caracteristica_agregada IN ({0})".format(", ".join(["'{0}'".format(caracteristica) for caracteristica in user_data['caracteristica']]))
+        if 'subcategoria' in user_data and isinstance(user_data['subcategoria'], list) and len(user_data['subcategoria']) > 0:
+            where_clause += " AND subcategoria IN ({0})".format(", ".join(["'{0}'".format(subcategoria) for subcategoria in user_data['subcategoria']]))
        
         
         importaciones=[]
         cursor=obtener_conexion().cursor()
         cursor.execute("""select Year(Fecha_despacho) as Año,sum(FOB), sum(unidades) 
-                       from bd_importacion.importacion join bd_importacion.marcas on importacion.id_marca=marcas.id_marca
+                       from bd_importacion.importacion 
+                       join bd_importacion.marcas on importacion.id_marca=marcas.id_marca
+                       join bd_importacion.categoria_importacion on importacion.id_subcategoria=categoria_importacion.id_subcategoria
                                WHERE Fecha_despacho IS NOT NULL {0} 
                                group by Year(Fecha_despacho) order by Year(Fecha_despacho)
                                """.format(where_clause))
@@ -219,6 +236,8 @@ class Consulta_Imp(MethodView):
     @blp.arguments(ConsultaImpSch)
     def post(self,user_data):  
         where_clause = ""  # '1' es siempre verdadero, lo que permite agregar condiciones de manera más fácil
+        if 'id_producto' in user_data:
+            where_clause += " AND id_categoria_producto={0}".format(user_data['id_producto'])
         if 'anio' in user_data and isinstance(user_data['anio'], list) and len(user_data['anio']) > 0:
             where_clause += " AND Year(importacion.Fecha_despacho) IN ({0})".format(", ".join(map(str, user_data['anio'])))
         if 'mes' in user_data and isinstance(user_data['mes'], list) and len(user_data['mes']) > 0:
@@ -227,6 +246,8 @@ class Consulta_Imp(MethodView):
             where_clause += " AND marcas.Nombre_Marca IN ({0})".format(", ".join(["'{0}'".format(marca) for marca in user_data['nombre_marca']]))
         if 'caracteristica' in user_data and isinstance(user_data['caracteristica'], list) and len(user_data['caracteristica']) > 0:
             where_clause += " AND caracteristica_agregada IN ({0})".format(", ".join(["'{0}'".format(caracteristica) for caracteristica in user_data['caracteristica']])) 
+        if 'subcategoria' in user_data and isinstance(user_data['subcategoria'], list) and len(user_data['subcategoria']) > 0:
+            where_clause += " AND categoria_importacion.subcategoria IN ({0})".format(", ".join(["'{0}'".format(subcategoria) for subcategoria in user_data['subcategoria']]))
         
         importaciones=[]
         cursor=obtener_conexion().cursor()
@@ -245,6 +266,8 @@ FROM
             bd_importacion.importacion
         JOIN 
             bd_importacion.marcas ON importacion.id_marca = marcas.id_marca
+        JOIN 
+            bd_importacion.categoria_importacion on importacion.id_subcategoria=categoria_importacion.id_subcategoria
         WHERE 
             importacion.Fecha_despacho IS NOT NULL
             {0}
@@ -258,8 +281,10 @@ JOIN
             SUM(fob) AS total_fob_por_año
         FROM 
             bd_importacion.importacion
-                       JOIN 
+        JOIN 
             bd_importacion.marcas ON importacion.id_marca = marcas.id_marca
+        JOIN 
+            bd_importacion.categoria_importacion on importacion.id_subcategoria=categoria_importacion.id_subcategoria
         WHERE 
             Fecha_despacho IS NOT NULL 
             {0}
@@ -282,7 +307,11 @@ ORDER BY
 class Consulta_Imp(MethodView):
     @blp.arguments(ConsultaImpSch)
     def post(self,user_data):  
-        where_clause = ""  
+        where_clause = "" 
+        if 'id_producto' in user_data:
+            where_clause += " AND id_categoria_producto={0}".format(user_data['id_producto'])
+        if 'id_producto' in user_data and isinstance(user_data['id_producto'], list) and len(user_data['id_producto']) > 0:
+            where_clause += " AND id_categoria={0}".format(user_data['id_producto'])
         if 'anio' in user_data and isinstance(user_data['anio'], list) and len(user_data['anio']) > 0:
             where_clause += " AND YEAR(fecha_despacho) IN ({0})".format(", ".join(map(str, user_data['anio'])))
         if 'mes' in user_data and isinstance(user_data['mes'], list) and len(user_data['mes']) > 0:
@@ -291,17 +320,21 @@ class Consulta_Imp(MethodView):
             where_clause += " AND nombre_marca IN ({0})".format(", ".join(["'{0}'".format(marca) for marca in user_data['nombre_marca']]))
         if 'caracteristica' in user_data and isinstance(user_data['caracteristica'], list) and len(user_data['caracteristica']) > 0:
             where_clause += " AND caracteristica_agregada IN ({0})".format(", ".join(["'{0}'".format(caracteristica) for caracteristica in user_data['caracteristica']]))        
-        
+        if 'subcategoria' in user_data and isinstance(user_data['subcategoria'], list) and len(user_data['subcategoria']) > 0:
+            where_clause += " AND subcategoria IN ({0})".format(", ".join(["'{0}'".format(subcategoria) for subcategoria in user_data['subcategoria']]))
+    
         importaciones=[]
         cursor=obtener_conexion().cursor()
         cursor.execute("""SELECT 
     Year(Fecha_despacho) AS Año,
     Nombre_Marca,
-    ROUND(AVG(precio_unitario),2) AS Precio_Promedio
+    ROUND(SUM(FOB)/SUM(UNIDADES),2) AS Precio_Promedio
 FROM 
     bd_importacion.importacion
 JOIN 
     bd_importacion.marcas ON importacion.id_marca = marcas.id_marca
+JOIN 
+    bd_importacion.categoria_importacion on importacion.id_subcategoria=categoria_importacion.id_subcategoria
 WHERE 
     Fecha_despacho IS NOT NULL {0}
 GROUP BY 
@@ -324,6 +357,8 @@ class Consulta_Imp(MethodView):
     @blp.arguments(ConsultaImpSch)
     def post(self,user_data):  
         where_clause = "WHERE 1"  # '1' es siempre verdadero, lo que permite agregar condiciones de manera más fácil
+        if 'id_producto' in user_data:
+            where_clause += " AND id_categoria_producto={0}".format(user_data['id_producto'])
         if 'anio' in user_data and isinstance(user_data['anio'], list) and len(user_data['anio']) > 0:
             where_clause += " AND YEAR(fecha_despacho) IN ({0})".format(", ".join(map(str, user_data['anio'])))
         if 'mes' in user_data and isinstance(user_data['mes'], list) and len(user_data['mes']) > 0:
@@ -332,6 +367,8 @@ class Consulta_Imp(MethodView):
             where_clause += " AND nombre_marca IN ({0})".format(", ".join(["'{0}'".format(marca) for marca in user_data['nombre_marca']]))
         if 'caracteristica' in user_data and isinstance(user_data['caracteristica'], list) and len(user_data['caracteristica']) > 0:
             where_clause += " AND caracteristica_agregada IN ({0})".format(", ".join(["'{0}'".format(caracteristica) for caracteristica in user_data['caracteristica']]))        
+        if 'subcategoria' in user_data and isinstance(user_data['subcategoria'], list) and len(user_data['subcategoria']) > 0:
+            where_clause += " AND subcategoria IN ({0})".format(", ".join(["'{0}'".format(subcategoria) for subcategoria in user_data['subcategoria']]))
                 
         importaciones=[]
         cursor=obtener_conexion().cursor()
@@ -345,6 +382,8 @@ JOIN
     bd_importacion.importador i ON f.id_importador = i.id_importador
 JOIN 
     bd_importacion.marcas ON f.id_marca = marcas.id_marca
+JOIN 
+    bd_importacion.categoria_importacion on f.id_subcategoria=categoria_importacion.id_subcategoria
 JOIN (
     SELECT 
         id_importador,
@@ -353,7 +392,9 @@ JOIN (
         bd_importacion.importacion
 JOIN 
     bd_importacion.marcas ON importacion.id_marca = marcas.id_marca
-                       {0}
+JOIN 
+    bd_importacion.categoria_importacion on importacion.id_subcategoria=categoria_importacion.id_subcategoria
+    {0}
     GROUP BY 
         id_importador
     ORDER BY 
@@ -372,6 +413,8 @@ JOIN (
                 bd_importacion.importacion
 JOIN 
     bd_importacion.marcas ON importacion.id_marca = marcas.id_marca
+JOIN 
+    bd_importacion.categoria_importacion on importacion.id_subcategoria=categoria_importacion.id_subcategoria
                        {0}
             GROUP BY 
                 id_importador
@@ -402,6 +445,8 @@ class Consulta_Imp(MethodView):
     @blp.arguments(ConsultaImpSch)
     def post(self,user_data):  
         where_clause = ""  # '1' es siempre verdadero, lo que permite agregar condiciones de manera más fácil
+        if 'id_producto' in user_data:
+            where_clause += " AND id_categoria_producto={0}".format(user_data['id_producto'])
         if 'anio' in user_data and isinstance(user_data['anio'], list) and len(user_data['anio']) > 0:
             where_clause += " AND Year(importacion.Fecha_despacho) IN ({0})".format(", ".join(map(str, user_data['anio'])))
         if 'mes' in user_data and isinstance(user_data['mes'], list) and len(user_data['mes']) > 0:
@@ -410,6 +455,8 @@ class Consulta_Imp(MethodView):
             where_clause += " AND marcas.Nombre_Marca IN ({0})".format(", ".join(["'{0}'".format(marca) for marca in user_data['nombre_marca']]))
         if 'caracteristica' in user_data and isinstance(user_data['caracteristica'], list) and len(user_data['caracteristica']) > 0:
             where_clause += " AND caracteristica_agregada IN ({0})".format(", ".join(["'{0}'".format(caracteristica) for caracteristica in user_data['caracteristica']]))        
+        if 'subcategoria' in user_data and isinstance(user_data['subcategoria'], list) and len(user_data['subcategoria']) > 0:
+            where_clause += " AND subcategoria IN ({0})".format(", ".join(["'{0}'".format(subcategoria) for subcategoria in user_data['subcategoria']]))
                    
         importaciones=[]
         cursor=obtener_conexion().cursor()
@@ -428,8 +475,11 @@ FROM
             bd_importacion.importacion
         JOIN 
             bd_importacion.marcas ON importacion.id_marca = marcas.id_marca
+        JOIN 
+            bd_importacion.categoria_importacion on importacion.id_subcategoria=categoria_importacion.id_subcategoria
         WHERE 
-            importacion.Fecha_despacho IS NOT NULL
+            importacion.Fecha_despacho IS NOT NULL AND
+            importacion.CARACTERISTICA_AGREGADA IS NOT NULL
             {0}
         GROUP BY 
             Year(importacion.Fecha_despacho), importacion.CARACTERISTICA_AGREGADA
@@ -441,10 +491,13 @@ JOIN
             SUM(fob) AS total_fob_por_año
         FROM 
             bd_importacion.importacion
-                       JOIN 
+        JOIN 
             bd_importacion.marcas ON importacion.id_marca = marcas.id_marca
+        JOIN 
+            bd_importacion.categoria_importacion on importacion.id_subcategoria=categoria_importacion.id_subcategoria
         WHERE 
-            Fecha_despacho IS NOT NULL 
+            Fecha_despacho IS NOT NULL AND
+            CARACTERISTICA_AGREGADA IS NOT NULL
             {0}
         GROUP BY 
             Year(Fecha_despacho)
@@ -466,6 +519,8 @@ class Consulta_Imp(MethodView):
     @blp.arguments(ConsultaImpSch)
     def post(self,user_data):  
         where_clause = ""  # '1' es siempre verdadero, lo que permite agregar condiciones de manera más fácil
+        if 'id_producto' in user_data:
+            where_clause += " AND id_categoria_producto={0}".format(user_data['id_producto'])
         if 'anio' in user_data and isinstance(user_data['anio'], list) and len(user_data['anio']) > 0:
             where_clause += " AND Year(importacion.Fecha_despacho) IN ({0})".format(", ".join(map(str, user_data['anio'])))
         if 'mes' in user_data and isinstance(user_data['mes'], list) and len(user_data['mes']) > 0:
@@ -474,6 +529,8 @@ class Consulta_Imp(MethodView):
             where_clause += " AND marcas.Nombre_Marca IN ({0})".format(", ".join(["'{0}'".format(marca) for marca in user_data['nombre_marca']]))
         if 'caracteristica' in user_data and isinstance(user_data['caracteristica'], list) and len(user_data['caracteristica']) > 0:
             where_clause += " AND caracteristica_agregada IN ({0})".format(", ".join(["'{0}'".format(caracteristica) for caracteristica in user_data['caracteristica']]))        
+        if 'subcategoria' in user_data and isinstance(user_data['subcategoria'], list) and len(user_data['subcategoria']) > 0:
+            where_clause += " AND subcategoria IN ({0})".format(", ".join(["'{0}'".format(subcategoria) for subcategoria in user_data['subcategoria']]))
                  
         importaciones=[]
         cursor=obtener_conexion().cursor()
@@ -494,6 +551,8 @@ FROM
             bd_importacion.importacion
         JOIN 
             bd_importacion.marcas ON importacion.id_marca = marcas.id_marca
+        JOIN 
+            bd_importacion.categoria_importacion on importacion.id_subcategoria=categoria_importacion.id_subcategoria
         WHERE 
             importacion.Fecha_despacho IS NOT NULL AND importacion.CARACTERISTICA_AGREGADA IS NOT NULL 
                        {0}
@@ -511,6 +570,8 @@ LEFT JOIN
             bd_importacion.importacion
         JOIN 
             bd_importacion.marcas ON importacion.id_marca = marcas.id_marca
+        JOIN 
+            bd_importacion.categoria_importacion on importacion.id_subcategoria=categoria_importacion.id_subcategoria
         WHERE 
             importacion.Fecha_despacho IS NOT NULL AND importacion.CARACTERISTICA_AGREGADA IS NOT NULL 
             {0}
@@ -545,6 +606,8 @@ class Consulta_Imp(MethodView):
     @blp.arguments(ConsultaImpSch)
     def post(self,user_data):  
         where_clause = ""  # '1' es siempre verdadero, lo que permite agregar condiciones de manera más fácil
+        if 'id_producto' in user_data:
+            where_clause += " AND id_categoria_producto={0}".format(user_data['id_producto'])
         if 'anio' in user_data and isinstance(user_data['anio'], list) and len(user_data['anio']) > 0:
             where_clause += " AND YEAR(fecha_despacho) IN ({0})".format(", ".join(map(str, user_data['anio'])))
         if 'mes' in user_data and isinstance(user_data['mes'], list) and len(user_data['mes']) > 0:
@@ -553,6 +616,8 @@ class Consulta_Imp(MethodView):
             where_clause += " AND nombre_marca IN ({0})".format(", ".join(["'{0}'".format(marca) for marca in user_data['nombre_marca']]))
         if 'caracteristica' in user_data and isinstance(user_data['caracteristica'], list) and len(user_data['caracteristica']) > 0:
             where_clause += " AND caracteristica_agregada IN ({0})".format(", ".join(["'{0}'".format(caracteristica) for caracteristica in user_data['caracteristica']]))        
+        if 'subcategoria' in user_data and isinstance(user_data['subcategoria'], list) and len(user_data['subcategoria']) > 0:
+            where_clause += " AND subcategoria IN ({0})".format(", ".join(["'{0}'".format(subcategoria) for subcategoria in user_data['subcategoria']]))
           
         importaciones=[]
         cursor=obtener_conexion().cursor()
@@ -566,6 +631,8 @@ JOIN
     bd_importacion.importador ON importacion.id_importador = importador.id_importador
 JOIN 
     bd_importacion.marcas ON importacion.id_marca = marcas.id_marca
+JOIN 
+    bd_importacion.categoria_importacion on importacion.id_subcategoria=categoria_importacion.id_subcategoria
 WHERE 
 	importacion.Fecha_despacho IS NOT NULL 
     {0}
@@ -582,12 +649,14 @@ ORDER BY
             importaciones.append(importacion)
         return importaciones
     
-@blp.route("/consulta-anios-fecha-despacho")
+@blp.route("/consulta-anios-fecha-despacho/<int:id>")
 class AniosDespacho(MethodView):
-    def get(self):
+    def get(self,id):
         anios=[]
         cursor=obtener_conexion().cursor()
-        cursor.execute("SELECT DISTINCT YEAR(fecha_despacho) AS anio FROM bd_importacion.importacion WHERE fecha_despacho IS NOT NULL ORDER BY anio ASC;")
+        cursor.execute("""SELECT DISTINCT YEAR(fecha_despacho) AS anio FROM bd_importacion.importacion 
+                       WHERE fecha_despacho IS NOT NULL and id_categoria_producto={0}
+                        ORDER BY anio ASC;""".format(id))
         result=cursor.fetchall()
         cursor.close()
         for fila in result:
@@ -595,12 +664,13 @@ class AniosDespacho(MethodView):
             anios.append(anio)
         return anios
     
-@blp.route("/consulta-filtro-caracteristicas")
+@blp.route("/consulta-filtro-caracteristicas/<int:id>")
 class AniosDespacho(MethodView):
-    def get(self):
+    def get(self,id):
         carcateristicas=[]
         cursor=obtener_conexion().cursor()
-        cursor.execute("SELECT DISTINCT CARACTERISTICA_AGREGADA  FROM bd_importacion.importacion WHERE CARACTERISTICA_AGREGADA IS NOT NULL;")
+        cursor.execute("""SELECT DISTINCT CARACTERISTICA_AGREGADA  FROM bd_importacion.importacion 
+                       WHERE CARACTERISTICA_AGREGADA IS NOT NULL and id_categoria_producto={0};""".format(id))
         result=cursor.fetchall()
         cursor.close()
         for fila in result:
