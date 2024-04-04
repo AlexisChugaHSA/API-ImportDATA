@@ -164,7 +164,7 @@ class Consulta_Imp(MethodView):
 class Consulta_Imp(MethodView):
     @blp.arguments(ConsultaImpSch)
     def post(self,user_data):  
-        where_clause = "WHERE 1"  # '1' es siempre verdadero, lo que permite agregar condiciones de manera más fácil
+        where_clause = "WHERE 1 AND ESTADO=1"  # '1' es siempre verdadero, lo que permite agregar condiciones de manera más fácil
         if 'id_producto' in user_data:
             where_clause += " AND id_categoria_producto={0}".format(user_data['id_producto'])
         if 'anio' in user_data and isinstance(user_data['anio'], list) and len(user_data['anio']) > 0:
@@ -199,7 +199,7 @@ class Consulta_Imp(MethodView):
 class Consulta_Imp(MethodView):
     @blp.arguments(ConsultaImpSch)
     def post(self,user_data):  
-        where_clause = ""  # '1' es siempre verdadero, lo que permite agregar condiciones de manera más fácil
+        where_clause = "ESTADO=1"  # '1' es siempre verdadero, lo que permite agregar condiciones de manera más fácil
         if 'id_producto' in user_data:
             where_clause += " AND id_categoria_producto={0}".format(user_data['id_producto'])
         if 'anio' in user_data and isinstance(user_data['anio'], list) and len(user_data['anio']) > 0:
@@ -220,7 +220,7 @@ class Consulta_Imp(MethodView):
                        from bd_importacion.importacion 
                        join bd_importacion.marcas on importacion.id_marca=marcas.id_marca
                        join bd_importacion.categoria_importacion on importacion.id_subcategoria=categoria_importacion.id_subcategoria
-                               WHERE Fecha_despacho IS NOT NULL {0} 
+                               WHERE Fecha_despacho IS NOT NULL  AND {0} 
                                group by Year(Fecha_despacho) order by Year(Fecha_despacho)
                                """.format(where_clause))
         result=cursor.fetchall()
@@ -269,7 +269,7 @@ FROM
         JOIN 
             bd_importacion.categoria_importacion on importacion.id_subcategoria=categoria_importacion.id_subcategoria
         WHERE 
-            importacion.Fecha_despacho IS NOT NULL
+            importacion.Fecha_despacho IS NOT NULL AND importacion.ESTADO=1
             {0}
         GROUP BY 
             Year(importacion.Fecha_despacho), marcas.Nombre_Marca
@@ -336,7 +336,7 @@ JOIN
 JOIN 
     bd_importacion.categoria_importacion on importacion.id_subcategoria=categoria_importacion.id_subcategoria
 WHERE 
-    Fecha_despacho IS NOT NULL {0}
+    Fecha_despacho IS NOT NULL AND ESTADO=1 {0}
 GROUP BY 
     Year(Fecha_despacho), Nombre_Marca
 ORDER BY 
@@ -356,7 +356,7 @@ ORDER BY
 class Consulta_Imp(MethodView):
     @blp.arguments(ConsultaImpSch)
     def post(self,user_data):  
-        where_clause = "WHERE 1"  # '1' es siempre verdadero, lo que permite agregar condiciones de manera más fácil
+        where_clause = "WHERE 1 AND ESTADO=1"  # '1' es siempre verdadero, lo que permite agregar condiciones de manera más fácil
         if 'id_producto' in user_data:
             where_clause += " AND id_categoria_producto={0}".format(user_data['id_producto'])
         if 'anio' in user_data and isinstance(user_data['anio'], list) and len(user_data['anio']) > 0:
@@ -479,7 +479,7 @@ FROM
             bd_importacion.categoria_importacion on importacion.id_subcategoria=categoria_importacion.id_subcategoria
         WHERE 
             importacion.Fecha_despacho IS NOT NULL AND
-            importacion.CARACTERISTICA_AGREGADA IS NOT NULL
+            importacion.CARACTERISTICA_AGREGADA IS NOT NULL AND importacion.ESTADO=1
             {0}
         GROUP BY 
             Year(importacion.Fecha_despacho), importacion.CARACTERISTICA_AGREGADA
@@ -554,7 +554,8 @@ FROM
         JOIN 
             bd_importacion.categoria_importacion on importacion.id_subcategoria=categoria_importacion.id_subcategoria
         WHERE 
-            importacion.Fecha_despacho IS NOT NULL AND importacion.CARACTERISTICA_AGREGADA IS NOT NULL 
+            importacion.Fecha_despacho IS NOT NULL AND importacion.CARACTERISTICA_AGREGADA IS NOT NULL AND
+                       importacion.ESTADO=1
                        {0}
         GROUP BY 
             marcas.nombre_marca
@@ -634,7 +635,7 @@ JOIN
 JOIN 
     bd_importacion.categoria_importacion on importacion.id_subcategoria=categoria_importacion.id_subcategoria
 WHERE 
-	importacion.Fecha_despacho IS NOT NULL 
+	 importacion.ESTADO=1                  
     {0}
 GROUP BY 
 	 importador.razon_social
