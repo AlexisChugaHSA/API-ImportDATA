@@ -286,7 +286,7 @@ JOIN
         JOIN 
             bd_importacion.categoria_importacion on importacion.id_subcategoria=categoria_importacion.id_subcategoria
         WHERE 
-            Fecha_despacho IS NOT NULL 
+            Fecha_despacho IS NOT NULL AND importacion.ESTADO=1
             {0}
         GROUP BY 
             Year(Fecha_despacho)
@@ -326,7 +326,7 @@ class Consulta_Imp(MethodView):
         importaciones=[]
         cursor=obtener_conexion().cursor()
         cursor.execute("""SELECT 
-    Year(Fecha_despacho) AS Año,
+    Month(Fecha_despacho) AS Mes,
     Nombre_Marca,
     ROUND(SUM(FOB)/SUM(UNIDADES),2) AS Precio_Promedio
 FROM 
@@ -338,16 +338,16 @@ JOIN
 WHERE 
     Fecha_despacho IS NOT NULL AND ESTADO=1 {0}
 GROUP BY 
-    Year(Fecha_despacho), Nombre_Marca
+    Month(Fecha_despacho), Nombre_Marca
 ORDER BY 
-    Year(Fecha_despacho), Nombre_Marca; 
+    Month(Fecha_despacho), Nombre_Marca; 
 
 """.format(where_clause))
         result=cursor.fetchall()
         cursor.close()
         for fila in result:
             importacion={
-                         'anio':fila[0], 'nombre_marca':fila[1], 'precio_promedio':fila[2]}
+                         'mes':fila[0], 'nombre_marca':fila[1], 'precio_promedio':fila[2]}
             importaciones.append(importacion)
         return importaciones
     
@@ -497,7 +497,7 @@ JOIN
             bd_importacion.categoria_importacion on importacion.id_subcategoria=categoria_importacion.id_subcategoria
         WHERE 
             Fecha_despacho IS NOT NULL AND
-            CARACTERISTICA_AGREGADA IS NOT NULL
+            CARACTERISTICA_AGREGADA IS NOT NULL AND importacion.ESTADO=1
             {0}
         GROUP BY 
             Year(Fecha_despacho)
@@ -574,7 +574,8 @@ LEFT JOIN
         JOIN 
             bd_importacion.categoria_importacion on importacion.id_subcategoria=categoria_importacion.id_subcategoria
         WHERE 
-            importacion.Fecha_despacho IS NOT NULL AND importacion.CARACTERISTICA_AGREGADA IS NOT NULL 
+            importacion.Fecha_despacho IS NOT NULL AND importacion.CARACTERISTICA_AGREGADA IS NOT NULL AND
+                       importacion.ESTADO=1
             {0}
         GROUP BY 
             marcas.nombre_marca, importacion.CARACTERISTICA_AGREGADA
@@ -623,32 +624,74 @@ class Consulta_Imp(MethodView):
         importaciones=[]
         cursor=obtener_conexion().cursor()
         cursor.execute("""SELECT 
-    importador.razon_social,
-    SUM(importacion.FOB) AS FOB,
-    SUM(importacion.UNIDADES) AS UNIDADES
-FROM 
-    bd_importacion.importacion 
-JOIN 
-    bd_importacion.importador ON importacion.id_importador = importador.id_importador
-JOIN 
-    bd_importacion.marcas ON importacion.id_marca = marcas.id_marca
-JOIN 
-    bd_importacion.categoria_importacion on importacion.id_subcategoria=categoria_importacion.id_subcategoria
-WHERE 
-	 importacion.ESTADO=1                  
-    {0}
-GROUP BY 
-	 importador.razon_social
+    t1.Importador,
+    t1.Total_Unidades,
+    t1.Total_FOB,
+    t2.Marca,
+    t2.Unidades_por_marca,
+    t2.Fob_por_marca
+FROM
+    (
+        SELECT 
+            importador.razon_social AS Importador,
+            SUM(importacion.UNIDADES) AS Total_Unidades,
+            SUM(importacion.FOB) AS Total_FOB
+        FROM 
+            bd_importacion.importacion
+        JOIN 
+            bd_importacion.importador ON importacion.id_importador = importador.id_importador
+        JOIN 
+            bd_importacion.marcas ON importacion.id_marca = marcas.id_marca
+        JOIN 
+            bd_importacion.categoria_importacion on importacion.id_subcategoria=categoria_importacion.id_subcategoria
+        WHERE 
+            importacion.Fecha_despacho IS NOT NULL AND importacion.CARACTERISTICA_AGREGADA IS NOT NULL AND
+            importacion.ESTADO=1 {0}
+        GROUP BY 
+            importador.razon_social
+    ) t1
+LEFT JOIN
+    (
+        SELECT 
+            importador.razon_social AS Importador,
+            marcas.nombre_marca AS Marca,
+            SUM(importacion.UNIDADES) AS Unidades_por_marca,
+            SUM(importacion.fob) AS Fob_por_marca
+        FROM 
+            bd_importacion.importacion
+        JOIN 
+            bd_importacion.importador ON importacion.id_importador = importador.id_importador
+        JOIN 
+            bd_importacion.marcas ON importacion.id_marca = marcas.id_marca
+        JOIN 
+            bd_importacion.categoria_importacion on importacion.id_subcategoria=categoria_importacion.id_subcategoria
+        WHERE 
+            importacion.Fecha_despacho IS NOT NULL AND importacion.CARACTERISTICA_AGREGADA IS NOT NULL AND
+            importacion.ESTADO=1 {0}
+        GROUP BY 
+            importador.razon_social, marcas.nombre_marca
+    ) t2 ON t1.Importador = t2.Importador
 ORDER BY 
-    FOB DESC;
+    t1.Importador, t2.Marca;
                                """.format(where_clause))
         result=cursor.fetchall()
         cursor.close()
+        respuesta_final = {}
         for fila in result:
-            importacion={
-                         'importador':fila[0], 'fob':fila[1], 'unidades':fila[2]}
-            importaciones.append(importacion)
-        return importaciones
+            importacion = {
+                'marca': fila[3],
+                'mar_unidades': fila[4],
+                'mar_fob': fila[5]
+            }
+            if fila[0] not in respuesta_final:
+                respuesta_final[fila[0]] = {
+                    'importador': fila[0],
+                    'total_fob': fila[2],
+                    'total_unidades': fila[1],
+                    'marcas': []
+            }
+            respuesta_final[fila[0]]['marcas'].append(importacion)
+        return respuesta_final
     
 @blp.route("/consulta-anios-fecha-despacho/<int:id>")
 class AniosDespacho(MethodView):
