@@ -181,7 +181,7 @@ def login():
             conexion.commit()
             conexion.close()
             # refresh_token = create_refresh_token(identity=datos[0])
-            return jsonify({'mensaje': "OK", "token": access_token}), 200
+            return jsonify({'mensaje': "OK", 'id_usuario':datos[0],"token": access_token}), 200
         else:
             return jsonify({'mensaje': "TK"}), 200
 
@@ -212,7 +212,7 @@ def leer_user():
         conexion.commit()
         conexion.close()
             # refresh_token = create_refresh_token(identity=datos[0])
-        return jsonify({'mensaje': "OKSI","token":access_token}), 200
+        return jsonify({'mensaje': "OKSI",'id_usuario':datos[0],"token":access_token}), 200
     else:
         return jsonify({'mensaje': "NOEN"})
 

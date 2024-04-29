@@ -30,9 +30,9 @@ class Empresaa(MethodView):
     def post(self, user_data):
         conexion = obtener_conexion()
         with conexion.cursor() as cursor:
-            cursor.execute("""Insert into empresa(nombre,direccion,telefono,correo,identificacion)
-                        values('{0}','{1}','{2}','{3}','{4}')""".
-                        format( user_data['nombre'], user_data['direccion'], user_data['telefono'], user_data['correo'], user_data['identificacion']))
+            cursor.execute("""Insert into empresa(id_metodo_pago,nombre,direccion,telefono,correo,identificacion)
+                        values({0},'{1}',{2},'{3}','{4}','{5}')""".
+                        format( user_data['id_metodo_pago'],user_data['nombre'], user_data['direccion'], user_data['telefono'], user_data['correo'], user_data['identificacion']))
             conexion.commit()
         with conexion.cursor() as cursor:
              cursor.execute("""SELECT * from empresa where nombre='{0}' and direccion='{1}' and telefono='{2}' and correo='{3}' and identificacion='{4}'""".
