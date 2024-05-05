@@ -3,6 +3,7 @@ from flask.views import MethodView
 from flask_smorest import Blueprint, abort
 from schemas import FacturacionSchema
 from bd import obtener_conexion
+from flask_jwt_extended import jwt_required
 from flask import Flask, abort, render_template, request, redirect, jsonify
 blp = Blueprint("Facturacion", "facturacion",
                 description="Operaciones con facturacion")
@@ -11,6 +12,7 @@ blp = Blueprint("Facturacion", "facturacion",
 @blp.route("/facturacion")
 class CategoriaSchema(MethodView):
     @blp.response(200, FacturacionSchema(many=True))
+    @jwt_required()
     def get(self):
         facturacion = []
         cursor = obtener_conexion().cursor()
@@ -28,6 +30,7 @@ class CategoriaSchema(MethodView):
 @blp.route("/facturacion")
 class CUP(MethodView):
     @blp.arguments(FacturacionSchema)
+    @jwt_required()
     def post(self, user_data):
         fecha_actual = datetime.now()
         fecha_actual = datetime.now().strftime('%Y-%m-%d')
@@ -46,6 +49,7 @@ class CUP(MethodView):
 
 
     @blp.arguments(FacturacionSchema)
+    @jwt_required()
     def put(self, user_data):
         conexion = obtener_conexion()
         cursor = conexion.cursor()
@@ -65,6 +69,7 @@ class CUP(MethodView):
 @blp.route("/facturacion/<int:id>")
 class User(MethodView):
     @blp.response(200, FacturacionSchema)
+    @jwt_required()
     def get(self, id):
         cursor = obtener_conexion().cursor()
         cursor.execute("Select * from facturacion where id_factura={0}".format(id))
@@ -76,7 +81,7 @@ class User(MethodView):
             return factura, 200
         else:
             return {"Mensaje": "Factura no encontrada"}, 409
-    
+    @jwt_required()
     def delete(self, id):
         conexion = obtener_conexion()
         cursor = conexion.cursor()
@@ -88,6 +93,7 @@ class User(MethodView):
 @blp.route("/facturacionbyemp/<int:id>")
 class User(MethodView):
     @blp.response(200, FacturacionSchema(many=True))
+    @jwt_required()
     def get(self, id):
         facturacion = []
         cursor = obtener_conexion().cursor()

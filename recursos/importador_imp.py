@@ -2,12 +2,14 @@ from flask.views import MethodView
 from flask_smorest import Blueprint, abort
 from schemas import ImportadorSch
 from bd_imp import obtener_conexion
+from flask_jwt_extended import jwt_required
 from flask import Flask, abort,render_template, request, redirect,jsonify
 blp = Blueprint("Importador_Imp", "importador_imp", description="Operaciones con importadores")
 
 @blp.route("/importador-imp")
 class Importadores_Imp_Schema(MethodView):
     @blp.response(200, ImportadorSch(many=True))
+    @jwt_required()
     def get(self):
         importadores=[]
         cursor=obtener_conexion().cursor()
@@ -23,6 +25,7 @@ class Importadores_Imp_Schema(MethodView):
 @blp.route("/importador-imp/<int:id>")
 class Importador_Imp_Schema(MethodView):
     @blp.response(200, ImportadorSch)
+    @jwt_required()
     def get(self,id):
         cursor= obtener_conexion().cursor()
         cursor.execute("Select * from importador where id_importador={0}".format(id))
@@ -38,6 +41,7 @@ class Importador_Imp_Schema(MethodView):
 @blp.route("/importador-imp")
 class Importador_Imp(MethodView):
     @blp.arguments(ImportadorSch)
+    @jwt_required()
     def post(self,user_data):
         conexion=obtener_conexion()
         with conexion.cursor() as cursor:
@@ -48,7 +52,8 @@ class Importador_Imp(MethodView):
         conexion.close()
         return {"mensaje":"Importador registrado"},200
 
-    @blp.arguments(ImportadorSch)       
+    @blp.arguments(ImportadorSch) 
+    @jwt_required()      
     def put(self, user_data):
         conexion=obtener_conexion()
         cursor= conexion.cursor()

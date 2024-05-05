@@ -1,13 +1,19 @@
 import datetime
+
+from flask import jsonify
+from flask_jwt_extended import jwt_required
+from blocklist import BLOCKLIST
 from flask.views import MethodView
 from flask_smorest import Blueprint, abort
 from schemas import ConsultaImpSch
 from bd_imp import obtener_conexion
+
 blp = Blueprint("Consulta_Imp", "consulta_imp", description="Operaciones con importación")
         
 @blp.route("/consultas-imp")
 class Consulta_Imp(MethodView):
     @blp.arguments(ConsultaImpSch)
+    @jwt_required()
     def post(self,user_data):  
         where_clause = "WHERE 1"  # '1' es siempre verdadero, lo que permite agregar condiciones de manera más fácil
 
@@ -77,6 +83,7 @@ class Consulta_Imp(MethodView):
 @blp.route("/consulta-imp")
 class Consulta_Imp(MethodView):
    # @blp.arguments(ConsultaImpSch)
+    @jwt_required()
     def post(self,user_data):  
         where_clause = "WHERE 1"  # '1' es siempre verdadero, lo que permite agregar condiciones de manera más fácil
 
@@ -127,8 +134,10 @@ class Consulta_Imp(MethodView):
     
 
 @blp.route("/consulta-top-marcas-unidades")
+#
 class Consulta_Imp(MethodView):
     @blp.arguments(ConsultaImpSch)
+    @jwt_required()
     def post(self,user_data):  
         where_clause = "WHERE "  # '1' es siempre verdadero, lo que permite agregar condiciones de manera más fácil
         if 'id_producto' in user_data:
@@ -158,11 +167,12 @@ class Consulta_Imp(MethodView):
             importacion={
                          'nombre_marca':fila[0], 'unidades':fila[1]}
             importaciones.append(importacion)
-        return importaciones
+        return jsonify(importaciones)
 
 @blp.route("/consulta-top-marcas-fob")
 class Consulta_Imp(MethodView):
     @blp.arguments(ConsultaImpSch)
+    @jwt_required()
     def post(self,user_data):  
         where_clause = "WHERE "  # '1' es siempre verdadero, lo que permite agregar condiciones de manera más fácil
         if 'id_producto' in user_data:
@@ -198,6 +208,7 @@ class Consulta_Imp(MethodView):
 @blp.route("/consulta-importaciones-fob-unidades")
 class Consulta_Imp(MethodView):
     @blp.arguments(ConsultaImpSch)
+    @jwt_required()
     def post(self,user_data):  
         where_clause = ""  # '1' es siempre verdadero, lo que permite agregar condiciones de manera más fácil
         if 'id_producto' in user_data:
@@ -234,6 +245,7 @@ class Consulta_Imp(MethodView):
 @blp.route("/consulta-share-por-marcas")
 class Consulta_Imp(MethodView):
     @blp.arguments(ConsultaImpSch)
+    @jwt_required()
     def post(self,user_data):  
         where_clause = ""  # '1' es siempre verdadero, lo que permite agregar condiciones de manera más fácil
         if 'id_producto' in user_data:
@@ -306,6 +318,7 @@ ORDER BY
 @blp.route("/precio-promedio-por-marcas")
 class Consulta_Imp(MethodView):
     @blp.arguments(ConsultaImpSch)
+    @jwt_required()
     def post(self,user_data):  
         where_clause = "" 
         if 'id_producto' in user_data:
@@ -355,6 +368,7 @@ ORDER BY
 @blp.route("/consulta-fob-por-importador")
 class Consulta_Imp(MethodView):
     @blp.arguments(ConsultaImpSch)
+    @jwt_required()
     def post(self,user_data):  
         where_clause = "WHERE "  # '1' es siempre verdadero, lo que permite agregar condiciones de manera más fácil
         if 'id_producto' in user_data:
@@ -443,6 +457,7 @@ ORDER BY
 @blp.route("/consulta-share-por-segmento")
 class Consulta_Imp(MethodView):
     @blp.arguments(ConsultaImpSch)
+    @jwt_required()
     def post(self,user_data):  
         where_clause = ""  # '1' es siempre verdadero, lo que permite agregar condiciones de manera más fácil
         if 'id_producto' in user_data:
@@ -515,6 +530,7 @@ ORDER BY
 @blp.route("/consulta-características-por-marca")
 class Consulta_Imp(MethodView):
     @blp.arguments(ConsultaImpSch)
+    @jwt_required()
     def post(self,user_data):  
         where_clause = ""  # '1' es siempre verdadero, lo que permite agregar condiciones de manera más fácil
         if 'id_producto' in user_data:
@@ -602,6 +618,7 @@ ORDER BY
 @blp.route("/consulta-ventas-por-importador")
 class Consulta_Imp(MethodView):
     @blp.arguments(ConsultaImpSch)
+    @jwt_required()
     def post(self,user_data):  
         where_clause = ""  # '1' es siempre verdadero, lo que permite agregar condiciones de manera más fácil
         if 'id_producto' in user_data:
@@ -689,6 +706,7 @@ ORDER BY
     
 @blp.route("/consulta-anios-fecha-despacho/<int:id>")
 class AniosDespacho(MethodView):
+    @jwt_required()
     def get(self,id):
         anios=[]
         cursor=obtener_conexion().cursor()
@@ -704,6 +722,7 @@ class AniosDespacho(MethodView):
     
 @blp.route("/consulta-filtro-caracteristicas/<int:id>")
 class AniosDespacho(MethodView):
+    @jwt_required()
     def get(self,id):
         carcateristicas=[]
         cursor=obtener_conexion().cursor()

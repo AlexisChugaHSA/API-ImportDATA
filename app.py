@@ -47,7 +47,7 @@ app.config["API_TITLE"] = "Stores REST API"
 app.config["API_VERSION"] = "v1"
 app.config["OPENAPI_VERSION"] = "3.0.3"
 app.config["OPENAPI_URL_PREFIX"] = "/"
-app.config['JWT_ACCESS_TOKEN_EXPIRES'] = datetime.timedelta(seconds=50000)
+app.config['JWT_ACCESS_TOKEN_EXPIRES'] = datetime.timedelta(seconds=36000)
 jwt = JWTManager(app)
 app.config["JWT_SECRET_KEY"] = str(secrets.SystemRandom().getrandbits(128))
 app.register_blueprint(UserBlueprint)
@@ -168,7 +168,7 @@ def login():
     conexion = obtener_conexion()
     with conexion.cursor() as cursor:
         cursor.execute(
-            "Select * from usuario where usuario='{0}'".format(request.json['usuario']))
+            "Select * from usuario where usuario='{0}' ORDER BY ID_USUARIO DESC LIMIT 1;".format(request.json['usuario']))
         datos = cursor.fetchone()
         print(datos)
     if datos != None and pbkdf2_sha256.verify(request.json["password"], datos[2]):
@@ -194,14 +194,14 @@ def leer_user():
     conexion = obtener_conexion()
     with conexion.cursor() as cursor:
         cursor.execute(
-            "Select * from usuario where usuario='{0}'".format(request.json['usuario']))
+            "Select * from usuario where usuario='{0}' ORDER BY ID_USUARIO DESC LIMIT 1;".format(request.json['usuario']))
         datos = cursor.fetchone()
     if datos != None and pbkdf2_sha256.verify(request.json["password"], datos[2]):
         with conexion.cursor() as cursor:
             cursor.execute(
                 """Update usuario Set token=null where id_usuario={0}""".format(datos[0]))
             cursor.execute(
-                "Select * from usuario where usuario='{0}'".format(request.json['usuario']))
+                "Select * from usuario where id_usuario='{0}'".format(datos[0]))
             datos = cursor.fetchone()
         conexion.commit()
 
@@ -225,7 +225,7 @@ def salir():
         cursor.execute(
             "Select * from usuario where usuario='{0}'".format(request.json['usuario']))
         datos = cursor.fetchone()
-    if datos != None and pbkdf2_sha256.verify(request.json["password"], datos[2]):
+    if datos != None:
         with conexion.cursor() as cursor:
             cursor.execute(
                 """Update usuario Set token=null where id_usuario={0}""".format(datos[0]))
@@ -246,3 +246,8 @@ def refresh():
     jti = get_jwt()["jti"]
     BLOCKLIST.add(jti)
     return {"access_token": new_token}, 200
+
+@app.route('/usuario-logueado',methods=['GET'])
+@jwt_required()
+def logueado():
+    return {"login": True}

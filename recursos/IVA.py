@@ -2,12 +2,14 @@ from flask.views import MethodView
 from flask_smorest import Blueprint, abort
 from schemas import IVASchema
 from bd import obtener_conexion
+from flask_jwt_extended import jwt_required
 from flask import Flask, abort,render_template, request, redirect,jsonify
 blp = Blueprint("IVA", "iva", description="Operaciones con iva")
 
 @blp.route("/iva-s")
 class DireccionSchema(MethodView):
     @blp.response(200, IVASchema(many=True))
+    @jwt_required()
     def get(self):
         ivas=[]
         cursor=obtener_conexion().cursor()
@@ -23,6 +25,7 @@ class DireccionSchema(MethodView):
 @blp.route("/iva")
 class Membresia(MethodView):
     @blp.arguments(IVASchema)
+    @jwt_required()
     def post(self,user_data):
         conexion=obtener_conexion()
         cursor=conexion.cursor()
@@ -38,7 +41,8 @@ class Membresia(MethodView):
         else:
             return {"mensaje":"Ya existe un iva con ese valor"},409
 
-    @blp.arguments(IVASchema)       
+    @blp.arguments(IVASchema)  
+    @jwt_required()     
     def put(self, user_data):
         conexion=obtener_conexion()
         cursor= conexion.cursor()
@@ -57,6 +61,7 @@ class Membresia(MethodView):
 @blp.route("/iva/<int:id>")
 class User(MethodView):
     @blp.response(200, IVASchema)
+    @jwt_required()
     def get(self,id):
         cursor= obtener_conexion().cursor()
         cursor.execute("Select iva_valor, id_iva from iva where id_iva={0}".format(id))
@@ -67,7 +72,7 @@ class User(MethodView):
             return iva,200
         else:
             return {"Mensaje": "IVA no encontrado"},409
-
+    @jwt_required()
     def delete(self, id):
         conexion=obtener_conexion()
         cursor= conexion.cursor()

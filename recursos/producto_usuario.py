@@ -2,6 +2,7 @@ from flask.views import MethodView
 from flask_smorest import Blueprint, abort
 from schemas import ProductoUsuarioSchema
 from bd import obtener_conexion
+from flask_jwt_extended import jwt_required
 from datetime import datetime, timedelta
 from flask import Flask, abort, render_template, request, redirect, jsonify
 blp = Blueprint("Producto_Usuario", "producto_usuario",
@@ -11,6 +12,7 @@ blp = Blueprint("Producto_Usuario", "producto_usuario",
 @blp.route("/producto-usuarios")
 class ProdUsersSchema(MethodView):
     @blp.response(200, ProductoUsuarioSchema(many=True))
+    @jwt_required()
     def get(self):
         p_us = []
         cursor = obtener_conexion().cursor()
@@ -28,6 +30,7 @@ class ProdUsersSchema(MethodView):
 @blp.route("/producto-usuario")
 class ProductoUsuario(MethodView):
     @blp.arguments(ProductoUsuarioSchema)
+    @jwt_required()
     def post(self, user_data):
         fecha_actual = datetime.now()
         fecha_hasta = fecha_actual + timedelta(days=user_data['periodo']*30)
@@ -47,7 +50,8 @@ class ProductoUsuario(MethodView):
             'id_producto': datos[2], 'id_pago': datos[3], 'activo': datos[4], 'precio': datos[5], 'fecha': datos[6],'periodo': datos[7], 'fecha_hasta': datos[8]}
         return prod_user
     
-    @blp.arguments(ProductoUsuarioSchema)       
+    @blp.arguments(ProductoUsuarioSchema)      
+    @jwt_required() 
     def put(self, user_data):
         conexion=obtener_conexion()
         cursor= conexion.cursor()
@@ -67,6 +71,7 @@ class ProductoUsuario(MethodView):
 @blp.route("/producto-usuario/<int:id>")
 class User(MethodView):
     @blp.response(200, ProductoUsuarioSchema(many=True))
+    @jwt_required()
     def get(self,id):
         p_us = []
         conexion = obtener_conexion()
@@ -78,7 +83,7 @@ class User(MethodView):
                 'id_producto': fila[2],'id_pago': fila[3], 'activo': fila[4], 'precio': fila[5], 'fecha': fila[6], 'periodo': fila[7], 'fecha_hasta': fila[8]}
             p_us.append(p_u)
         return p_us
-
+    @jwt_required()
     def delete(self, id):
         conexion=obtener_conexion()
         cursor= conexion.cursor()
@@ -90,6 +95,7 @@ class User(MethodView):
         
 @blp.route("/verificacion-prod-user")
 class User(MethodView):
+    @jwt_required()
     def put(self):
         fecha_actual = datetime.now().strftime('%Y-%m-%d')
         conexion = obtener_conexion()

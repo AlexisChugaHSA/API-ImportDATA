@@ -2,12 +2,14 @@ from flask.views import MethodView
 from flask_smorest import Blueprint, abort
 from schemas import CategoriaSchema
 from bd import obtener_conexion
+from flask_jwt_extended import jwt_required
 from flask import Flask, abort,render_template, request, redirect,jsonify
 blp = Blueprint("Categorias", "categorias", description="Operaciones con categorias")
 
 @blp.route("/categorias")
 class Categoria_Schema(MethodView):
     @blp.response(200, CategoriaSchema(many=True))
+    @jwt_required()
     def get(self):
         categorias=[]
         cursor=obtener_conexion().cursor()
@@ -23,6 +25,7 @@ class Categoria_Schema(MethodView):
 @blp.route("/categoria")
 class Categoria(MethodView):
     @blp.arguments(CategoriaSchema)
+    @jwt_required()
     def post(self,user_data):
         conexion=obtener_conexion()
         cursor=conexion.cursor()
@@ -38,7 +41,8 @@ class Categoria(MethodView):
         else:
             return {"mensaje":"Ya existe una categoria con este nombre"},409
 
-    @blp.arguments(CategoriaSchema)       
+    @blp.arguments(CategoriaSchema)   
+    @jwt_required()    
     def put(self, user_data):
         conexion=obtener_conexion()
         cursor= conexion.cursor()
@@ -57,7 +61,7 @@ class Categoria(MethodView):
 @blp.route("/categoria/<int:id>")
 class User(MethodView):
     @blp.response(200, CategoriaSchema)
-    
+    @jwt_required()
     def get(self,id):
         cursor= obtener_conexion().cursor()
         cursor.execute("Select id_categoria,nombre,descripcion,imagen,tags from categoria where id_categoria={0}".format(id))
@@ -68,7 +72,7 @@ class User(MethodView):
             return categoria,200
         else:
             return {"Mensaje": "Categoria no encontrada"},409
-
+    @jwt_required()
     def delete(self, id):
         conexion=obtener_conexion()
         cursor= conexion.cursor()

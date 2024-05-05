@@ -2,12 +2,14 @@ from flask.views import MethodView
 from flask_smorest import Blueprint, abort
 from schemas import DetalleFacturaSchema
 from bd import obtener_conexion
+from flask_jwt_extended import jwt_required
 from flask import Flask, abort,render_template, request, redirect,jsonify
 blp = Blueprint("Detalle_Factura", "detalle_factura", description="Operaciones con detalle_factura")
 
 @blp.route("/detalle-facturas")
 class CategoriaSchema(MethodView):
     @blp.response(200, DetalleFacturaSchema(many=True))
+    @jwt_required()
     def get(self):
         detalleFs=[]
         cursor=obtener_conexion().cursor()
@@ -23,6 +25,7 @@ class CategoriaSchema(MethodView):
 @blp.route("/detalle-factura")
 class CUP(MethodView):
     @blp.arguments(DetalleFacturaSchema)
+    @jwt_required()
     def post(self,user_data):
         conexion=obtener_conexion()
         with conexion.cursor() as cursor:
@@ -33,7 +36,8 @@ class CUP(MethodView):
         return {"mensaje":"Detalle_Factura registrado"},201 
 
 
-    @blp.arguments(DetalleFacturaSchema)       
+    @blp.arguments(DetalleFacturaSchema)     
+    @jwt_required()  
     def put(self, user_data):
         conexion=obtener_conexion()
         cursor= conexion.cursor()
@@ -53,6 +57,7 @@ class CUP(MethodView):
 @blp.route("/detalle-factura/<int:id>")
 class User(MethodView):
     @blp.response(200, DetalleFacturaSchema)
+    @jwt_required()
     def get(self,id):
         cursor= obtener_conexion().cursor()
         cursor.execute("Select id_detalle_factura,id_pago,id_producto,id_factura,precio from detalle_factura where id_detalle_factura={0}".format(id))
@@ -75,6 +80,7 @@ class User(MethodView):
 @blp.route("/detalle-facturas-fact/<int:id>")
 class User(MethodView):
     @blp.response(200, DetalleFacturaSchema(many=True))
+    @jwt_required()
     def get(self,id):
         facturacion = []
         cursor= obtener_conexion().cursor()

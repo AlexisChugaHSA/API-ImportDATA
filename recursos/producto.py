@@ -2,12 +2,14 @@ from flask.views import MethodView
 from flask_smorest import Blueprint, abort
 from schemas import ProductoSchema
 from bd import obtener_conexion
+from flask_jwt_extended import jwt_required
 from flask import Flask, abort,render_template, request, redirect,jsonify
 blp = Blueprint("Productos", "productos", description="Operaciones con productos")
 
 @blp.route("/productos")
 class Productos_Schema(MethodView):
     @blp.response(200, ProductoSchema(many=True))
+    @jwt_required()
     def get(self):
         productos=[]
         cursor=obtener_conexion().cursor()
@@ -23,6 +25,7 @@ class Productos_Schema(MethodView):
 @blp.route("/producto")
 class Producto(MethodView):
     @blp.arguments(ProductoSchema)
+    @jwt_required()
     def post(self,user_data):
         conexion=obtener_conexion()
         cursor=conexion.cursor()
@@ -39,7 +42,8 @@ class Producto(MethodView):
         else:
             return {"mensaje":"Este producto ya se ha registrado anteriormente"},409
 
-    @blp.arguments(ProductoSchema)       
+    @blp.arguments(ProductoSchema)  
+    @jwt_required()     
     def put(self, user_data):
         conexion=obtener_conexion()
         cursor= conexion.cursor()
@@ -59,6 +63,7 @@ class Producto(MethodView):
 @blp.route("/producto/<int:id>")
 class Pagoo(MethodView):
     @blp.response(200, ProductoSchema)
+    @jwt_required()
     def get(self,id):
         cursor= obtener_conexion().cursor()
         cursor.execute("Select id_producto,id_categoria,nombre,descripcion,precio,descuento,url,imagen,tags from producto where id_producto={0}".format(id))
@@ -69,7 +74,7 @@ class Pagoo(MethodView):
             return fila,200
         else:
             return {"Mensaje": "Producto no encontrado"},409
-
+    @jwt_required()
     def delete(self, id):
         conexion=obtener_conexion()
         cursor= conexion.cursor()

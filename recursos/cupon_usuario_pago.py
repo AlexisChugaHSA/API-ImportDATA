@@ -2,12 +2,14 @@ from flask.views import MethodView
 from flask_smorest import Blueprint, abort
 from schemas import CUPSchema
 from bd import obtener_conexion
+from flask_jwt_extended import jwt_required
 from flask import Flask, abort,render_template, request, redirect,jsonify
 blp = Blueprint("Cupon_Usuario_Pago", "cupon_usuario_pago", description="Operaciones con cupon_usuario_pago")
 
 @blp.route("/cups")
 class CategoriaSchema(MethodView):
     @blp.response(200, CUPSchema(many=True))
+    @jwt_required()
     def get(self):
         cups=[]
         cursor=obtener_conexion().cursor()
@@ -23,6 +25,7 @@ class CategoriaSchema(MethodView):
 @blp.route("/cup")
 class CUP(MethodView):
     @blp.arguments(CUPSchema)
+    @jwt_required()
     def post(self,user_data):
         conexion=obtener_conexion()
         cursor=conexion.cursor()
@@ -39,7 +42,8 @@ class CUP(MethodView):
         else:
             return {"mensaje":"Ya existe el CUP que se desea registrar"},409
 
-    @blp.arguments(CUPSchema)       
+    @blp.arguments(CUPSchema)  
+    @jwt_required()     
     def put(self, user_data):
         conexion=obtener_conexion()
         cursor= conexion.cursor()
@@ -59,6 +63,7 @@ class CUP(MethodView):
 @blp.route("/cup/<int:id>")
 class User(MethodView):
     @blp.response(200, CUPSchema)
+    @jwt_required()
     def get(self,id):
         cursor= obtener_conexion().cursor()
         cursor.execute("Select id_cupon_usuario_pago,id_usuario,id_cupon,id_pago,fecha from cupon_usuario_pago where id_cupon_usario_pago={0}".format(id))
@@ -69,7 +74,7 @@ class User(MethodView):
             return cup,200
         else:
             return {"Mensaje": "CUP no encontrado"},409
-
+    @jwt_required()
     def delete(self, id):
         conexion=obtener_conexion()
         cursor= conexion.cursor()

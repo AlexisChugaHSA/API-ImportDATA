@@ -3,6 +3,7 @@ from flask.views import MethodView
 from flask_smorest import Blueprint, abort
 from schemas import EmpresaSchema
 from bd import obtener_conexion
+from flask_jwt_extended import jwt_required
 from flask import Flask, abort, render_template, request, redirect, jsonify
 blp = Blueprint("Empresas", "empresa", description="Operaciones con empresas")
 
@@ -10,6 +11,7 @@ blp = Blueprint("Empresas", "empresa", description="Operaciones con empresas")
 @blp.route("/empresas")
 class Empresa_Schema(MethodView):
     @blp.response(200, EmpresaSchema(many=True))
+    @jwt_required()
     def get(self):
         empresas = []
         cursor = obtener_conexion().cursor()
@@ -27,6 +29,7 @@ class Empresa_Schema(MethodView):
 @blp.route("/empresa")
 class Empresaa(MethodView):
     @blp.arguments(EmpresaSchema)
+    @jwt_required()
     def post(self, user_data):
         conexion = obtener_conexion()
         with conexion.cursor() as cursor:
@@ -47,6 +50,7 @@ class Empresaa(MethodView):
 @blp.route("/empresa/<int:id>")
 class User(MethodView):
     @blp.response(200, EmpresaSchema)
+    @jwt_required()
     def get(self,id):
         cursor= obtener_conexion().cursor()
         cursor.execute("Select id_empresa,id_metodo_pago,nombre,direccion,telefono,correo,identificacion from empresa where id_empresa={0}".format(id))
@@ -58,7 +62,8 @@ class User(MethodView):
         else:
             return {"Mensaje": "Empresa no encontrada"},409
     
-    @blp.arguments(EmpresaSchema)       
+    @blp.arguments(EmpresaSchema)    
+    @jwt_required()   
     def put(self, user_data,id):
         conexion=obtener_conexion()
         cursor= conexion.cursor()
@@ -73,7 +78,7 @@ class User(MethodView):
             return {"Mensaje": "Empresa actualizada"},200
         else:
             return {"Mensaje": "Empresa no encontrada"},409
-
+    @jwt_required()
     def delete(self, id):
         conexion=obtener_conexion()
         cursor= conexion.cursor()

@@ -2,12 +2,14 @@ from flask.views import MethodView
 from flask_smorest import Blueprint, abort
 from schemas import CuponSchema
 from bd import obtener_conexion
+from flask_jwt_extended import jwt_required
 from flask import Flask, abort,render_template, request, redirect,jsonify
 blp = Blueprint("Cupones", "cupones", description="Operaciones con cupones")
 
 @blp.route("/cupones")
 class CuponSchema(MethodView):
     @blp.response(200, CuponSchema(many=True))
+    @jwt_required()
     def get(self):
         cupones=[]
         cursor=obtener_conexion().cursor()
@@ -23,6 +25,7 @@ class CuponSchema(MethodView):
 @blp.route("/cupon")
 class Categoria(MethodView):
     @blp.arguments(CuponSchema)
+    @jwt_required()
     def post(self,user_data):
         conexion=obtener_conexion()
         cursor=conexion.cursor()
@@ -38,7 +41,8 @@ class Categoria(MethodView):
         else:
             return {"mensaje":"Ya existe un cupon con este codigo"},409
 
-    @blp.arguments(CuponSchema)       
+    @blp.arguments(CuponSchema)  
+    @jwt_required()    
     def put(self, user_data):
         conexion=obtener_conexion()
         cursor= conexion.cursor()
@@ -57,6 +61,7 @@ class Categoria(MethodView):
 @blp.route("/cupon/<int:id>")
 class User(MethodView):
     @blp.response(200, CuponSchema)
+    @jwt_required()
     def get(self,id):
         cursor= obtener_conexion().cursor()
         cursor.execute("Select id_cupon,fecha,cupon_descuento,codigo,activo from cupon where id_cupon={0}".format(id))
@@ -67,7 +72,7 @@ class User(MethodView):
             return cupon,200
         else:
             return {"Mensaje": "Cupon no encontrado"},409
-
+    @jwt_required()
     def delete(self, id):
         conexion=obtener_conexion()
         cursor= conexion.cursor()

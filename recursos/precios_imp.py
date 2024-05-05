@@ -2,12 +2,14 @@ from flask.views import MethodView
 from flask_smorest import Blueprint, abort
 from schemas import PreciosImpSch
 from bd_imp import obtener_conexion
+from flask_jwt_extended import jwt_required
 from flask import Flask, abort,render_template, request, redirect,jsonify
 blp = Blueprint("Precios_Imp", "precios_imp", description="Operaciones con precios de importación")
 
 @blp.route("/precios-imp")
 class PreciosSch(MethodView):
     @blp.response(200, PreciosImpSch(many=True))
+    @jwt_required()
     def get(self):
         precios=[]
         cursor=obtener_conexion().cursor()
@@ -24,6 +26,7 @@ class PreciosSch(MethodView):
 @blp.route("/precios-imp/<int:id>")
 class Precio_Imp_Sch(MethodView):
     @blp.response(200, PreciosImpSch)
+    @jwt_required()
     def get(self,id):
         cursor= obtener_conexion().cursor()
         cursor.execute("Select * from precios where id_precio={0}".format(id))
@@ -40,6 +43,7 @@ class Precio_Imp_Sch(MethodView):
 @blp.route("/precios-imp")
 class Precio_Imp(MethodView):
     @blp.arguments(PreciosImpSch)
+    @jwt_required()
     def post(self,user_data):
         conexion=obtener_conexion()
         with conexion.cursor() as cursor:
@@ -51,7 +55,8 @@ class Precio_Imp(MethodView):
         return {"mensaje":"Precio registrado"},200
 
 
-    @blp.arguments(PreciosImpSch)       
+    @blp.arguments(PreciosImpSch) 
+    @jwt_required()      
     def put(self, user_data):
         conexion=obtener_conexion()
         cursor= conexion.cursor()

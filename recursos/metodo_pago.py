@@ -2,12 +2,14 @@ from flask.views import MethodView
 from flask_smorest import Blueprint, abort
 from schemas import MetodoPagoSchema
 from bd import obtener_conexion
+from flask_jwt_extended import jwt_required
 from flask import Flask, abort,render_template, request, redirect,jsonify
 blp = Blueprint("Metodo_Pago", "metodo_pago", description="Operaciones con metodo_pago")
 
 @blp.route("/metodos-pago")
 class MetodosPagoSchema(MethodView):
     @blp.response(200, MetodoPagoSchema(many=True))
+    @jwt_required()
     def get(self):
         mpagos=[]
         cursor=obtener_conexion().cursor()
@@ -22,6 +24,7 @@ class MetodosPagoSchema(MethodView):
 @blp.route("/metodo-pago")
 class MetodoPago(MethodView):
     @blp.arguments(MetodoPagoSchema)
+    @jwt_required()
     def post(self,user_data):
         conexion=obtener_conexion()
         cursor=conexion.cursor()
@@ -38,7 +41,8 @@ class MetodoPago(MethodView):
             mpago={'id_metodo_pago':datos[0],'tarjeta':datos[1],'nombre':datos[2]}
             return mpago
 
-    @blp.arguments(MetodoPagoSchema)       
+    @blp.arguments(MetodoPagoSchema)   
+    @jwt_required()    
     def put(self, user_data):
         conexion=obtener_conexion()
         cursor= conexion.cursor()
@@ -57,6 +61,7 @@ class MetodoPago(MethodView):
 @blp.route("/metodo-pago/<int:id>")
 class Metodo_Pago(MethodView):
     @blp.response(200, MetodoPagoSchema)
+    @jwt_required()
     def get(self,id):
         cursor= obtener_conexion().cursor()
         cursor.execute("Select id_metodo_pago,tarjeta, nombre from metodopago where id_metodo_pago={0}".format(id))
@@ -67,7 +72,7 @@ class Metodo_Pago(MethodView):
             return mpago,200
         else:
             return {"Mensaje": "Metodo de pago no encontrado"},409
-
+    @jwt_required()
     def delete(self, id):
         conexion=obtener_conexion()
         cursor= conexion.cursor()

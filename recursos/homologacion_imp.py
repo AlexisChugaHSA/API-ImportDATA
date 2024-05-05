@@ -2,12 +2,14 @@ from flask.views import MethodView
 from flask_smorest import Blueprint, abort
 from schemas import HomologacionSch
 from bd_imp import obtener_conexion
+from flask_jwt_extended import jwt_required
 from flask import Flask, abort,render_template, request, redirect,jsonify
 blp = Blueprint("Homologacion_Imp", "homologacion_imp", description="Operaciones con homologacion de importación")
 
 @blp.route("/homologacion-imp")
 class Homologaciones_Imp_Schema(MethodView):
     @blp.response(200, HomologacionSch(many=True))
+    @jwt_required()
     def get(self):
         homologaciones=[]
         cursor=obtener_conexion().cursor()
@@ -22,6 +24,7 @@ class Homologaciones_Imp_Schema(MethodView):
 @blp.route("/homologacion-imp/<int:id>")
 class Homologacion_Imp_Schema(MethodView):
     @blp.response(200, HomologacionSch)
+    @jwt_required()
     def get(self,id):
         cursor= obtener_conexion().cursor()
         cursor.execute("Select * from homologacion where id_modelo_homologado={0}".format(id))
@@ -36,6 +39,7 @@ class Homologacion_Imp_Schema(MethodView):
 @blp.route("/homologacion-imp")
 class Homolocacion_Imp(MethodView):
     @blp.arguments(HomologacionSch)
+    @jwt_required()
     def post(self,user_data):
         conexion=obtener_conexion()
         with conexion.cursor() as cursor:
@@ -45,7 +49,8 @@ class Homolocacion_Imp(MethodView):
         conexion.close()
         return {"mensaje":"Homologacion registrada"},200
     
-    @blp.arguments(HomologacionSch)       
+    @blp.arguments(HomologacionSch) 
+    @jwt_required()      
     def put(self, user_data):
         conexion=obtener_conexion()
         cursor= conexion.cursor()

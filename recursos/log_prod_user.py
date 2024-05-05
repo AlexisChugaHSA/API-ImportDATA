@@ -2,12 +2,14 @@ from flask.views import MethodView
 from flask_smorest import Blueprint, abort
 from schemas import Log_Prod_UserSchema
 from bd import obtener_conexion
+from flask_jwt_extended import jwt_required
 from flask import Flask, abort,render_template, request, redirect,jsonify
 blp = Blueprint("LPU", "lpu", description="Operaciones con LPU")
 
 @blp.route("/lpu-s")
 class LogProdUserSchema(MethodView):
     @blp.response(200, Log_Prod_UserSchema(many=True))
+    @jwt_required()
     def get(self):
         lpus=[]
         cursor=obtener_conexion().cursor()
@@ -23,6 +25,7 @@ class LogProdUserSchema(MethodView):
 @blp.route("/lpu")
 class CUP(MethodView):
     @blp.arguments(Log_Prod_UserSchema)
+    @jwt_required()
     def post(self,user_data):
         conexion=obtener_conexion()
         cursor=conexion.cursor()
@@ -34,7 +37,8 @@ class CUP(MethodView):
         return {"mensaje":"LPU registrado"},201 
 
 
-    @blp.arguments(Log_Prod_UserSchema)       
+    @blp.arguments(Log_Prod_UserSchema)  
+    @jwt_required()     
     def put(self, user_data):
         conexion=obtener_conexion()
         cursor= conexion.cursor()
@@ -54,6 +58,7 @@ class CUP(MethodView):
 @blp.route("/lpu/<int:id>")
 class User(MethodView):
     @blp.response(200, Log_Prod_UserSchema)
+    @jwt_required()
     def get(self,id):
         cursor= obtener_conexion().cursor()
         cursor.execute("Select id_log_prod_user,id_usuario,id_producto,id_producto_usuario, precio, fecha from log_prod_user where id_log_prod_user={0}".format(id))
@@ -64,7 +69,7 @@ class User(MethodView):
             return lpu,200
         else:
             return {"Mensaje": "LPU no encontrado"},409
-
+    @jwt_required()
     def delete(self, id):
         conexion=obtener_conexion()
         cursor= conexion.cursor()

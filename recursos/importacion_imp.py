@@ -2,12 +2,14 @@ from flask.views import MethodView
 from flask_smorest import Blueprint, abort
 from schemas import ImportacionSch
 from bd_imp import obtener_conexion
+from flask_jwt_extended import jwt_required
 from flask import Flask, abort,render_template, request, redirect,jsonify
 blp = Blueprint("Importacion_Imp", "importacion_imp", description="Operaciones con importación")
 
 @blp.route("/importacion-imp")
 class Importacion_Imp_Schema(MethodView):
     @blp.response(200, ImportacionSch(many=True))
+    @jwt_required()
     def get(self):
         importaciones=[]
         cursor=obtener_conexion().cursor()
@@ -37,6 +39,7 @@ class Importacion_Imp_Schema(MethodView):
 @blp.route("/importacion-imp/<int:id>")
 class Categoria_Imp_Schema(MethodView):
     @blp.response(200, ImportacionSch)
+    @jwt_required()
     def get(self,id):
         cursor= obtener_conexion().cursor()
         cursor.execute("Select * from importacion where id_importacion={0}".format(id))
@@ -66,6 +69,7 @@ class Categoria_Imp_Schema(MethodView):
 @blp.route("/importacion-imp")
 class Importacion_Imp(MethodView):
     @blp.arguments(ImportacionSch)
+    @jwt_required()
     def post(self,user_data):
         conexion=obtener_conexion()
         with conexion.cursor() as cursor:
@@ -102,7 +106,8 @@ class Importacion_Imp(MethodView):
         conexion.close()
         return {"mensaje":"Importacion registrada"},200
 
-    @blp.arguments(ImportacionSch)       
+    @blp.arguments(ImportacionSch) 
+    @jwt_required()      
     def put(self, user_data):
         conexion=obtener_conexion()
         cursor= conexion.cursor()

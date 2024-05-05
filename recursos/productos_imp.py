@@ -2,12 +2,14 @@ from flask.views import MethodView
 from flask_smorest import Blueprint, abort
 from schemas import ProductosImpSch
 from bd_imp import obtener_conexion
+from flask_jwt_extended import jwt_required
 from flask import Flask, abort,render_template, request, redirect,jsonify
 blp = Blueprint("Productos_Imp", "productos_imp", description="Operaciones con productos de importación")
 
 @blp.route("/productos-imp")
 class Productos_Imp_Schema(MethodView):
     @blp.response(200, ProductosImpSch(many=True))
+    @jwt_required()
     def get(self):
         productos=[]
         cursor=obtener_conexion().cursor()
@@ -23,6 +25,7 @@ class Productos_Imp_Schema(MethodView):
 @blp.route("/productos-imp/<int:id>")
 class ProductoSch(MethodView):
     @blp.response(200, ProductosImpSch)
+    @jwt_required()
     def get(self,id):
         cursor= obtener_conexion().cursor()
         cursor.execute("Select * from productos where id_producto={0}".format(id))
@@ -39,6 +42,7 @@ class ProductoSch(MethodView):
 @blp.route("/productos-imp")
 class Producto_Imp(MethodView):
     @blp.arguments(ProductosImpSch)
+    @jwt_required()
     def post(self,user_data):
         conexion=obtener_conexion()
         with conexion.cursor() as cursor:
@@ -49,7 +53,8 @@ class Producto_Imp(MethodView):
         conexion.close()
         return {"mensaje":"Producto registrado"},200
 
-    @blp.arguments(ProductosImpSch)       
+    @blp.arguments(ProductosImpSch)  
+    @jwt_required()     
     def put(self, user_data):
         conexion=obtener_conexion()
         cursor= conexion.cursor()

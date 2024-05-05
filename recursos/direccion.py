@@ -2,12 +2,14 @@ from flask.views import MethodView
 from flask_smorest import Blueprint, abort
 from schemas import DireccionSchema
 from bd import obtener_conexion
+from flask_jwt_extended import jwt_required
 from flask import Flask, abort,render_template, request, redirect,jsonify
 blp = Blueprint("Direcciones", "direcciones", description="Operaciones con direcciones")
 
 @blp.route("/direcciones")
 class Direcciones_Schema(MethodView):
     @blp.response(200, DireccionSchema(many=True))
+    @jwt_required()
     def get(self):
         direcciones=[]
         cursor=obtener_conexion().cursor()
@@ -24,6 +26,7 @@ class Direcciones_Schema(MethodView):
 class Direccion_Schema(MethodView):
     @blp.arguments(DireccionSchema)
     @blp.response(200, DireccionSchema)
+    @jwt_required()
     def post(self,user_data):
         conexion=obtener_conexion()
         cursor=conexion.cursor()
@@ -43,7 +46,8 @@ class Direccion_Schema(MethodView):
             direccion={'id_direccion':datos[0],'id_pais':datos[1],'id_ciudad':datos[2]}
             return direccion
 
-    @blp.arguments(DireccionSchema)       
+    @blp.arguments(DireccionSchema)     
+    @jwt_required()  
     def put(self, user_data):
         conexion=obtener_conexion()
         cursor= conexion.cursor()
@@ -62,6 +66,7 @@ class Direccion_Schema(MethodView):
 @blp.route("/direccion/<int:id>")
 class User(MethodView):
     @blp.response(200, DireccionSchema)
+    @jwt_required()
     def get(self,id):
         cursor= obtener_conexion().cursor()
         cursor.execute("Select id_direccion,id_pais, id_ciudad from direccion where id_direccion={0}".format(id))
@@ -72,7 +77,7 @@ class User(MethodView):
             return direccion
         else:
             return {"Mensaje": "Direccion no encontrada"},409
-
+    @jwt_required()
     def delete(self, id):
         conexion=obtener_conexion()
         cursor= conexion.cursor()

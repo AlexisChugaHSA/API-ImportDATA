@@ -2,12 +2,14 @@ from flask.views import MethodView
 from flask_smorest import Blueprint, abort
 from schemas import PersonaSchema
 from bd import obtener_conexion
+from flask_jwt_extended import jwt_required
 from flask import Flask, abort,render_template, request, redirect,jsonify
 blp = Blueprint("Personas", "persona", description="Operaciones con personas")
 
 @blp.route("/personas")
 class Personas(MethodView):
     @blp.response(200, PersonaSchema(many=True))
+    @jwt_required()
     def get(self):
         personas=[]
         cursor=obtener_conexion().cursor()
@@ -23,6 +25,7 @@ class Personas(MethodView):
 @blp.route("/persona")
 class Persona(MethodView):
     @blp.arguments(PersonaSchema)
+    @jwt_required()
     def post(self,user_data):
         conexion=obtener_conexion()
         cursor=conexion.cursor()
@@ -51,6 +54,7 @@ class Persona(MethodView):
 @blp.route("/persona/<int:id>")
 class Person(MethodView):
     @blp.response(200, PersonaSchema)
+    @jwt_required()
     def get(self,id):
         cursor= obtener_conexion().cursor()
         cursor.execute("Select id_persona,id_direccion,id_empresa,id_usuario,nombre,apellido,correo,telefono from persona where id_persona={0}".format(id))
@@ -62,7 +66,8 @@ class Person(MethodView):
         else:
             return {"Mensaje": "Persona no encontrada"},409
     
-    @blp.arguments(PersonaSchema)       
+    @blp.arguments(PersonaSchema) 
+    @jwt_required()      
     def put(self,user_data, id):
         conexion=obtener_conexion()
         cursor= conexion.cursor()
@@ -77,7 +82,7 @@ class Person(MethodView):
             return {"Mensaje": "Datos actualizados con éxito"},200
         else:
             return {"Mensaje": "No se ha podido actalizar los datos"},409
-
+    @jwt_required()
     def delete(self, id):
         conexion=obtener_conexion()
         cursor= conexion.cursor()
@@ -90,6 +95,7 @@ class Person(MethodView):
 @blp.route("/persona-by-user/<int:id>")
 class Person(MethodView):
     @blp.response(200, PersonaSchema)
+    @jwt_required()
     def get(self,id):
         cursor= obtener_conexion().cursor()
         cursor.execute("Select id_persona,id_direccion,id_empresa,id_usuario,nombre,apellido,correo,telefono from persona where id_usuario={0}".format(id))

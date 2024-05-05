@@ -2,12 +2,14 @@ from flask.views import MethodView
 from flask_smorest import Blueprint, abort
 from schemas import MembresiasSchema
 from bd import obtener_conexion
+from flask_jwt_extended import jwt_required
 from flask import Flask, abort,render_template, request, redirect,jsonify
 blp = Blueprint("Membresias", "membresias", description="Operaciones con membresias")
 
 @blp.route("/membresias")
 class MembresiaSchema(MethodView):
     @blp.response(200, MembresiasSchema(many=True))
+    @jwt_required()
     def get(self):
         membresias=[]
         cursor=obtener_conexion().cursor()
@@ -23,6 +25,7 @@ class MembresiaSchema(MethodView):
 @blp.route("/membresia")
 class Membresia(MethodView):
     @blp.arguments(MembresiaSchema)
+    @jwt_required()
     def post(self,user_data):
         conexion=obtener_conexion()
         cursor=conexion.cursor()
@@ -38,7 +41,8 @@ class Membresia(MethodView):
         else:
             return {"mensaje":"Ya existe una membresia de este tipo"},409
 
-    @blp.arguments(MembresiaSchema)       
+    @blp.arguments(MembresiaSchema)  
+    @jwt_required()     
     def put(self, user_data):
         conexion=obtener_conexion()
         cursor= conexion.cursor()
@@ -57,6 +61,7 @@ class Membresia(MethodView):
 @blp.route("/membresia/<int:id>")
 class User(MethodView):
     @blp.response(200, MembresiasSchema)
+    @jwt_required()
     def get(self,id):
         cursor= obtener_conexion().cursor()
         cursor.execute("Select * from membresias where id_membresia={0}".format(id))
@@ -69,7 +74,7 @@ class User(MethodView):
             return membresia,200
         else:
             return {"Mensaje": "Membresia no encontrada"},409
-
+    @jwt_required()
     def delete(self, id):
         conexion=obtener_conexion()
         cursor= conexion.cursor()

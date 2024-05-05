@@ -2,6 +2,7 @@ from flask.views import MethodView
 from flask_smorest import Blueprint, abort
 from schemas import PagosSchema
 from bd import obtener_conexion
+from flask_jwt_extended import jwt_required
 from flask import Flask, abort,render_template, request, redirect,jsonify
 from datetime import datetime, timedelta
 blp = Blueprint("Pagos", "pagos", description="Operaciones con pagos")
@@ -9,6 +10,7 @@ blp = Blueprint("Pagos", "pagos", description="Operaciones con pagos")
 @blp.route("/pagos")
 class Pagos_Schema(MethodView):
     @blp.response(200, PagosSchema(many=True))
+    @jwt_required()
     def get(self):
         pagos=[]
         cursor=obtener_conexion().cursor()
@@ -24,6 +26,7 @@ class Pagos_Schema(MethodView):
 @blp.route("/pago")
 class Pago(MethodView):
     @blp.arguments(PagosSchema)
+    @jwt_required()
     def post(self,user_data):
         fecha_actual = datetime.now()
         fecha_hasta = fecha_actual + timedelta(days=user_data['periodo']*30)
@@ -56,7 +59,8 @@ class Pago(MethodView):
         return pago
 
 
-    @blp.arguments(PagosSchema)       
+    @blp.arguments(PagosSchema)  
+    @jwt_required()     
     def put(self, user_data):
         conexion=obtener_conexion()
         cursor= conexion.cursor()
@@ -76,6 +80,7 @@ class Pago(MethodView):
 @blp.route("/pago/<int:id>")
 class Pagoo(MethodView):
     @blp.response(200, PagosSchema)
+    @jwt_required()
     def get(self,id):
         cursor= obtener_conexion().cursor()
         cursor.execute("Select id_pago,id_empresa,valor,descuento,periodo,fecha,procesado,intentos,detalle from pagos where id_pago={0}".format(id))
@@ -86,7 +91,7 @@ class Pagoo(MethodView):
             return pago,200
         else:
             return {"Mensaje": "Pago no encontrado"},409
-
+    @jwt_required()
     def delete(self, id):
         conexion=obtener_conexion()
         cursor= conexion.cursor()
@@ -98,6 +103,7 @@ class Pagoo(MethodView):
 @blp.route("/pagos-empresa/<int:id>")
 class Pagoo(MethodView):
     @blp.response(200, PagosSchema(many=True))
+    @jwt_required()
     def get(self,id):
         pagos=[]
         cursor= obtener_conexion().cursor()
@@ -112,6 +118,7 @@ class Pagoo(MethodView):
 
 @blp.route("/cancelar-pago/<int:id>")
 class Pagoo(MethodView):
+    @jwt_required()
     def put(self,id):
         conexion=obtener_conexion()
         cursor=conexion.cursor()

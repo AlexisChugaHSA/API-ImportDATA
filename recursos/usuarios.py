@@ -2,6 +2,7 @@ from flask.views import MethodView
 from flask_smorest import Blueprint, abort
 from schemas import UsuarioSchema
 from bd import obtener_conexion
+from flask_jwt_extended import jwt_required
 from passlib.hash import pbkdf2_sha256
 import random
 import string
@@ -15,6 +16,7 @@ blp = Blueprint("Usuarios", "usuarios", description="Operations on users")
 @blp.route("/usuarios")
 class Usuarios(MethodView):
     @blp.response(200, UsuarioSchema(many=True))
+    @jwt_required()
     def get(self):
         usuarios = []
         cursor = obtener_conexion().cursor()
@@ -31,6 +33,7 @@ class Usuarios(MethodView):
 @blp.route("/usuario")
 class Usuario(MethodView):
     @blp.arguments(UsuarioSchema)
+    @jwt_required()
     def post(self, user_data):
         conexion = obtener_conexion()
         password = pbkdf2_sha256.hash(user_data['password']),
@@ -50,6 +53,7 @@ class Usuario(MethodView):
 @blp.route("/usuario/<int:id>")
 class User(MethodView):
     @blp.response(200, UsuarioSchema)
+    @jwt_required()
     def get(self, id):
         cursor = obtener_conexion().cursor()
         cursor.execute(
@@ -63,6 +67,7 @@ class User(MethodView):
             return {"Mensaje": "Usuario no encontrado"}, 409
         
     @blp.arguments(UsuarioSchema)
+    @jwt_required()
     def put(self, user_data, id):
         conexion = obtener_conexion()
         cursor = conexion.cursor()
@@ -83,6 +88,7 @@ class User(MethodView):
 @blp.route("/usuario/<string:nombre>")
 class User(MethodView):
     @blp.response(200, UsuarioSchema)
+    @jwt_required()
     def get(self, nombre):
         cursor = obtener_conexion().cursor()
         print(nombre)
@@ -98,7 +104,7 @@ class User(MethodView):
 
 
 
-
+    @jwt_required()
     def delete(self, id):
         conexion = obtener_conexion()
         cursor = conexion.cursor()
@@ -109,6 +115,7 @@ class User(MethodView):
 
 @blp.route("/reset_password/<string:nombre>")
 class User(MethodView):
+    @jwt_required()
     def put(self, nombre):
         conexion = obtener_conexion()
         cursor = conexion.cursor()
@@ -132,6 +139,7 @@ class User(MethodView):
 @blp.route("/comprobar_password")
 class User(MethodView):
     @blp.arguments(UsuarioSchema)
+    @jwt_required()
     def post(self, user_data):
         conexion = obtener_conexion()
         cursor = conexion.cursor()
@@ -144,12 +152,13 @@ class User(MethodView):
             return {"mensaje": "OK"}, 200
         else:
             return {"mensaje": "NO"}
-
+@jwt_required()
 def generar_contrasena_aleatoria(longitud=8):
     caracteres = string.ascii_letters + string.digits + string.punctuation
     contrasena = ''.join(random.choice(caracteres) for i in range(longitud))
     return contrasena
 
+@jwt_required()
 def enviar_correo_electronico(destinatario, asunto, cuerpo):
     # Establecer los parámetros del servidor SMTP
     servidor_smtp = 'smtp.gmail.com'

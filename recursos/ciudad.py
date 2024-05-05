@@ -2,12 +2,14 @@ from flask.views import MethodView
 from flask_smorest import Blueprint, abort
 from schemas import CiudadSchema
 from bd import obtener_conexion
+from flask_jwt_extended import jwt_required
 from flask import Flask, abort,render_template, request, redirect,jsonify
 blp = Blueprint("Ciudades", "ciudades", description="Operaciones con ciudad")
 
 @blp.route("/ciudades")
 class Ciudades_Schema(MethodView):
     @blp.response(200, CiudadSchema(many=True))
+    @jwt_required()
     def get(self):
         ciudades=[]
         cursor=obtener_conexion().cursor()
@@ -22,6 +24,7 @@ class Ciudades_Schema(MethodView):
 @blp.route("/ciudades/<int:id>")
 class Ciudades_Schema(MethodView):
     @blp.response(200, CiudadSchema(many=True))
+    @jwt_required()
     def get(self,id):
         ciudades=[]
         cursor=obtener_conexion().cursor()
@@ -36,6 +39,7 @@ class Ciudades_Schema(MethodView):
 @blp.route("/ciudad/<int:id>")
 class User(MethodView):
     @blp.response(200, CiudadSchema)
+    @jwt_required()
     def get(self,id):
         cursor= obtener_conexion().cursor()
         cursor.execute("Select * from ciudad where id_ciudad={0}".format(id))

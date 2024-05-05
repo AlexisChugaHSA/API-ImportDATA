@@ -2,12 +2,14 @@ from flask.views import MethodView
 from flask_smorest import Blueprint, abort
 from schemas import EmpresasImpSch
 from bd_imp import obtener_conexion
+from flask_jwt_extended import jwt_required
 from flask import Flask, abort,render_template, request, redirect,jsonify
 blp = Blueprint("Empresas_Imp", "empresas_imp", description="Operaciones con empresas de importación")
 
 @blp.route("/empresas-imp")
 class EmpresasSch(MethodView):
     @blp.response(200, EmpresasImpSch(many=True))
+    @jwt_required()
     def get(self):
         empresas=[]
         cursor=obtener_conexion().cursor()
@@ -22,6 +24,7 @@ class EmpresasSch(MethodView):
 @blp.route("/empresas-imp/<int:id>")
 class EmpresaSch(MethodView):
     @blp.response(200, EmpresasImpSch)
+    @jwt_required()
     def get(self,id):
         cursor= obtener_conexion().cursor()
         cursor.execute("Select * from empresas where id_empresa={0}".format(id))
@@ -36,6 +39,7 @@ class EmpresaSch(MethodView):
 @blp.route("/empresas-imp")
 class EmpresaImp(MethodView):
     @blp.arguments(EmpresasImpSch)
+    @jwt_required()
     def post(self,user_data):
         conexion=obtener_conexion()
         with conexion.cursor() as cursor:
@@ -45,7 +49,8 @@ class EmpresaImp(MethodView):
         conexion.close()
         return {"mensaje":"Empresa registrada"},200
 
-    @blp.arguments(EmpresasImpSch)       
+    @blp.arguments(EmpresasImpSch)    
+    @jwt_required()   
     def put(self, user_data):
         conexion=obtener_conexion()
         cursor= conexion.cursor()

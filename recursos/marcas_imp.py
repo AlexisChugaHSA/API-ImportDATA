@@ -2,12 +2,14 @@ from flask.views import MethodView
 from flask_smorest import Blueprint, abort
 from schemas import MarcasSch
 from bd_imp import obtener_conexion
+from flask_jwt_extended import jwt_required
 from flask import Flask, abort,render_template, request, redirect,jsonify
 blp = Blueprint("Marcas_Imp", "marcas_imp", description="Operaciones con marcas de importación")
 
 @blp.route("/marcas-imp")
 class Marcas_Imp_Schema(MethodView):
     @blp.response(200, MarcasSch(many=True))
+    @jwt_required()
     def get(self):
         marcas=[]
         cursor=obtener_conexion().cursor()
@@ -21,21 +23,29 @@ class Marcas_Imp_Schema(MethodView):
     
 @blp.route("/marcas-imp/<int:id>")
 class Marca_Imp_Schema(MethodView):
-    @blp.response(200, MarcasSch)
+    @blp.response(200, MarcasSch(many=True))
+    @jwt_required()
     def get(self,id):
+        marcas=[]
         cursor= obtener_conexion().cursor()
-        cursor.execute("Select * from marcas where id_marca={0}".format(id))
-        fila=cursor.fetchone()
+        cursor.execute("Select distinct id_marca from importacion where id_categoria_producto={0}".format(id))
+        result=cursor.fetchall()
         cursor.close()
-        if fila!=None:
+        id_marcas = [elemento[0] for elemento in result]
+
+        cursor= obtener_conexion().cursor()
+        cursor.execute("SELECT * FROM marcas WHERE id_marca IN ({0}) ORDER BY NOMBRE_MARCA".format(", ".join(map(str, id_marcas))))
+        result=cursor.fetchall()
+        cursor.close()
+        for fila in result:
             marca={'id_marca':fila[0],'nombre_marca':fila[1]}
-            return marca,200
-        else:
-            return {"Mensaje": "Empresa no encontrada"},409
+            marcas.append(marca)
+        return marcas
         
 @blp.route("/marcas-imp")
 class Marcas_Imp(MethodView):
     @blp.arguments(MarcasSch)
+    @jwt_required()
     def post(self,user_data):
         conexion=obtener_conexion()
         with conexion.cursor() as cursor:
@@ -45,7 +55,8 @@ class Marcas_Imp(MethodView):
         conexion.close()
         return {"mensaje":"Marca registrada"},200
 
-    @blp.arguments(MarcasSch)       
+    @blp.arguments(MarcasSch)    
+    @jwt_required()   
     def put(self, user_data):
         conexion=obtener_conexion()
         cursor= conexion.cursor()
