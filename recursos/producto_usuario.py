@@ -67,8 +67,57 @@ class ProductoUsuario(MethodView):
         else:
             return {"Mensaje": "Producto-Usuario no encontrado"},409
             
-
 @blp.route("/producto-usuario/<int:id>")
+class User(MethodView):
+    @blp.response(200, ProductoUsuarioSchema(many=True))
+    @jwt_required()
+    def get(self, id):
+        p_us = []
+        conexion = obtener_conexion()
+        with conexion.cursor() as cursor:
+            cursor.execute("SELECT * FROM producto_usuario WHERE id_usuario = %s AND activo = 1 ORDER BY id_producto, fecha_hasta DESC", (id,))
+        result = cursor.fetchall()
+
+        # Utilizamos un diccionario para rastrear los productos por su id_producto
+        productos_por_id = {}
+        for fila in result:
+            id_producto = fila[2]
+            # Si el producto ya existe en el diccionario y la fecha_hasta es mayor, lo actualizamos
+            if id_producto in productos_por_id:
+                if fila[8] > productos_por_id[id_producto][8]:
+                    productos_por_id[id_producto] = fila
+            else:
+                productos_por_id[id_producto] = fila
+
+        # Ahora, agregamos los productos únicos al resultado final
+        for fila in productos_por_id.values():
+            p_u = {
+                'id_producto_usuario': fila[0],
+                'id_usuario': fila[1],
+                'id_producto': fila[2],
+                'id_pago': fila[3],
+                'activo': fila[4],
+                'precio': fila[5],
+                'fecha': fila[6],
+                'periodo': fila[7],
+                'fecha_hasta': fila[8]
+            }
+            p_us.append(p_u)
+        
+        return p_us
+    def delete(self, id):
+        conexion=obtener_conexion()
+        cursor= conexion.cursor()
+        cursor.execute("Delete from prodcto_usuario where id_producto_usuario={0}".format(id))
+        conexion.commit()
+        conexion.close()
+        return {"Mensaje": "Producto-Usuario eliminada"},200
+
+
+
+'''
+@blp.route("/producto-usuario/<int:id>")
+
 class User(MethodView):
     @blp.response(200, ProductoUsuarioSchema(many=True))
     @jwt_required()
@@ -83,14 +132,9 @@ class User(MethodView):
                 'id_producto': fila[2],'id_pago': fila[3], 'activo': fila[4], 'precio': fila[5], 'fecha': fila[6], 'periodo': fila[7], 'fecha_hasta': fila[8]}
             p_us.append(p_u)
         return p_us
-    @jwt_required()
-    def delete(self, id):
-        conexion=obtener_conexion()
-        cursor= conexion.cursor()
-        cursor.execute("Delete from prodcto_usuario where id_producto_usuario={0}".format(id))
-        conexion.commit()
-        conexion.close()
-        return {"Mensaje": "Producto-Usuario eliminada"},200
+'''
+
+
 
         
 @blp.route("/verificacion-prod-user")

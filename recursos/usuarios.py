@@ -33,7 +33,7 @@ class Usuarios(MethodView):
 @blp.route("/usuario")
 class Usuario(MethodView):
     @blp.arguments(UsuarioSchema)
-    @jwt_required()
+    #@jwt_required()
     def post(self, user_data):
         conexion = obtener_conexion()
         password = pbkdf2_sha256.hash(user_data['password']),
@@ -53,7 +53,7 @@ class Usuario(MethodView):
 @blp.route("/usuario/<int:id>")
 class User(MethodView):
     @blp.response(200, UsuarioSchema)
-    @jwt_required()
+    #@jwt_required()
     def get(self, id):
         cursor = obtener_conexion().cursor()
         cursor.execute(
@@ -88,7 +88,7 @@ class User(MethodView):
 @blp.route("/usuario/<string:nombre>")
 class User(MethodView):
     @blp.response(200, UsuarioSchema)
-    @jwt_required()
+    #@jwt_required()
     def get(self, nombre):
         cursor = obtener_conexion().cursor()
         print(nombre)
@@ -139,7 +139,7 @@ class User(MethodView):
 @blp.route("/comprobar_password")
 class User(MethodView):
     @blp.arguments(UsuarioSchema)
-    @jwt_required()
+    #@jwt_required()
     def post(self, user_data):
         conexion = obtener_conexion()
         cursor = conexion.cursor()

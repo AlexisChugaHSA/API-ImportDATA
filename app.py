@@ -217,25 +217,18 @@ def leer_user():
         return jsonify({'mensaje': "NOEN"})
 
 
-@app.route('/logout', methods=['POST'])
+@app.route('/logout/<int:id>', methods=['POST'])
 @jwt_required()
-def salir():
+def salir(id):
     conexion = obtener_conexion()
     with conexion.cursor() as cursor:
         cursor.execute(
-            "Select * from usuario where usuario='{0}'".format(request.json['usuario']))
+                """Update usuario Set token=null where id_usuario={0}""".format(id))
+        cursor.execute(
+                "Select * from usuario where id_usuario='{0}'".format(id))
         datos = cursor.fetchone()
-    if datos != None:
-        with conexion.cursor() as cursor:
-            cursor.execute(
-                """Update usuario Set token=null where id_usuario={0}""".format(datos[0]))
-            cursor.execute(
-                "Select * from usuario where usuario='{0}'".format(request.json['usuario']))
-            datos = cursor.fetchone()
         conexion.commit()
-        return {"message": "Successfully logged out"}, 200
-    else:
-        return jsonify({'mensaje': "usuario no encontrado"})
+    return {"message": "Cierre de sesión exitoso"}, 200
 
 
 @app.route('/refresh', methods=['POST'])

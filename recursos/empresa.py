@@ -11,7 +11,7 @@ blp = Blueprint("Empresas", "empresa", description="Operaciones con empresas")
 @blp.route("/empresas")
 class Empresa_Schema(MethodView):
     @blp.response(200, EmpresaSchema(many=True))
-    @jwt_required()
+    #@jwt_required()
     def get(self):
         empresas = []
         cursor = obtener_conexion().cursor()
@@ -29,7 +29,7 @@ class Empresa_Schema(MethodView):
 @blp.route("/empresa")
 class Empresaa(MethodView):
     @blp.arguments(EmpresaSchema)
-    @jwt_required()
+    #@jwt_required()
     def post(self, user_data):
         conexion = obtener_conexion()
         with conexion.cursor() as cursor:
@@ -50,7 +50,7 @@ class Empresaa(MethodView):
 @blp.route("/empresa/<int:id>")
 class User(MethodView):
     @blp.response(200, EmpresaSchema)
-    @jwt_required()
+    #@jwt_required()
     def get(self,id):
         cursor= obtener_conexion().cursor()
         cursor.execute("Select id_empresa,id_metodo_pago,nombre,direccion,telefono,correo,identificacion from empresa where id_empresa={0}".format(id))
@@ -63,7 +63,7 @@ class User(MethodView):
             return {"Mensaje": "Empresa no encontrada"},409
     
     @blp.arguments(EmpresaSchema)    
-    @jwt_required()   
+    #@jwt_required()   
     def put(self, user_data,id):
         conexion=obtener_conexion()
         cursor= conexion.cursor()

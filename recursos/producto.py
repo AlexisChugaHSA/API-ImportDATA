@@ -9,7 +9,6 @@ blp = Blueprint("Productos", "productos", description="Operaciones con productos
 @blp.route("/productos")
 class Productos_Schema(MethodView):
     @blp.response(200, ProductoSchema(many=True))
-    @jwt_required()
     def get(self):
         productos=[]
         cursor=obtener_conexion().cursor()
@@ -63,7 +62,6 @@ class Producto(MethodView):
 @blp.route("/producto/<int:id>")
 class Pagoo(MethodView):
     @blp.response(200, ProductoSchema)
-    @jwt_required()
     def get(self,id):
         cursor= obtener_conexion().cursor()
         cursor.execute("Select id_producto,id_categoria,nombre,descripcion,precio,descuento,url,imagen,tags from producto where id_producto={0}".format(id))

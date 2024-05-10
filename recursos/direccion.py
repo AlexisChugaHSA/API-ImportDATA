@@ -9,7 +9,7 @@ blp = Blueprint("Direcciones", "direcciones", description="Operaciones con direc
 @blp.route("/direcciones")
 class Direcciones_Schema(MethodView):
     @blp.response(200, DireccionSchema(many=True))
-    @jwt_required()
+    #@jwt_required()
     def get(self):
         direcciones=[]
         cursor=obtener_conexion().cursor()
@@ -26,7 +26,7 @@ class Direcciones_Schema(MethodView):
 class Direccion_Schema(MethodView):
     @blp.arguments(DireccionSchema)
     @blp.response(200, DireccionSchema)
-    @jwt_required()
+    #@jwt_required()
     def post(self,user_data):
         conexion=obtener_conexion()
         cursor=conexion.cursor()
@@ -47,7 +47,7 @@ class Direccion_Schema(MethodView):
             return direccion
 
     @blp.arguments(DireccionSchema)     
-    @jwt_required()  
+    #@jwt_required()  
     def put(self, user_data):
         conexion=obtener_conexion()
         cursor= conexion.cursor()
@@ -66,7 +66,7 @@ class Direccion_Schema(MethodView):
 @blp.route("/direccion/<int:id>")
 class User(MethodView):
     @blp.response(200, DireccionSchema)
-    @jwt_required()
+    #@jwt_required()
     def get(self,id):
         cursor= obtener_conexion().cursor()
         cursor.execute("Select id_direccion,id_pais, id_ciudad from direccion where id_direccion={0}".format(id))

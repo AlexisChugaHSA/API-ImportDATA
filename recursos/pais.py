@@ -11,7 +11,7 @@ blp = Blueprint("Paises", "paises", description="Operaciones con paises")
 @blp.route("/paises")
 class Paises_Schema(MethodView):
     @blp.response(200, PaisesSchema(many=True))
-    @jwt_required()
+    #@jwt_required()
     def get(self):
         paises=[]
         cursor=obtener_conexion().cursor()
@@ -26,7 +26,7 @@ class Paises_Schema(MethodView):
 @blp.route("/pais/<int:id>")
 class User(MethodView):
     @blp.response(200, PaisesSchema)
-    @jwt_required()
+    #@jwt_required()
     def get(self,id):
         cursor= obtener_conexion().cursor()
         cursor.execute("Select id_pais, nombre, codigo_pais from paises where id_pais={0}".format(id))

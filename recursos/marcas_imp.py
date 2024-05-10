@@ -68,4 +68,4 @@ class Marcas_Imp(MethodView):
             conexion.close()
             return {"Mensaje": "Marca actualizada"},200
         else:
-            return {"Mensaje": "Marca no encontrada"},409
+            return {"Mensaje": "Marca no encontrada"},409 
