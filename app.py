@@ -240,7 +240,19 @@ def refresh():
     BLOCKLIST.add(jti)
     return {"access_token": new_token}, 200
 
-@app.route('/usuario-logueado',methods=['GET'])
+@app.route('/usuario-logueado/<int:id>',methods=['GET'])
 @jwt_required()
-def logueado():
-    return {"login": True}
+def logueado(id):
+    auth_header = request.headers.get('Authorization')
+    access_token = auth_header.split(" ")[1]
+    #print(access_token)
+    conexion = obtener_conexion()
+    with conexion.cursor() as cursor:
+        cursor.execute(
+            "Select TOKEN from usuario where id_usuario='{0}'".format(id))
+        datos = cursor.fetchone()
+        #print(datos[0])
+    if(datos[0]==access_token):
+        return {"login": True}
+    else:
+        return {"login": False}
