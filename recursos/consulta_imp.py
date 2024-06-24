@@ -154,6 +154,12 @@ class Consulta_Imp(MethodView):
             where_clause += " AND subcategoria IN ({0})".format(", ".join(["'{0}'".format(subcategoria) for subcategoria in user_data['subcategoria']]))
         print(where_clause)
         importaciones=[]
+        print("""select NOMBRE_MARCA,sum(UNIDADES) from bd_importacion.importacion 
+                       join bd_importacion.marcas on importacion.id_marca=marcas.id_marca
+                       join bd_importacion.categoria_importacion on importacion.id_subcategoria=categoria_importacion.id_subcategoria
+                               {0} 
+                               group by NOMBRE_MARCA order by sum(UNIDADES) DESC LIMIT 10
+                               """.format(where_clause))
         cursor=obtener_conexion().cursor()
         cursor.execute("""select NOMBRE_MARCA,sum(UNIDADES) from bd_importacion.importacion 
                        join bd_importacion.marcas on importacion.id_marca=marcas.id_marca
@@ -162,6 +168,7 @@ class Consulta_Imp(MethodView):
                                group by NOMBRE_MARCA order by sum(UNIDADES) DESC LIMIT 10
                                """.format(where_clause))
         result=cursor.fetchall()
+        
         cursor.close()
         for fila in result:
             importacion={
@@ -264,6 +271,50 @@ class Consulta_Imp(MethodView):
         importaciones=[]
         cursor=obtener_conexion().cursor()
         cursor.execute("""SELECT 
+    subconsulta.Año,
+    subconsulta.Nombre_Marca,
+    subconsulta.Total_fob,
+    ROUND((subconsulta.Total_fob / total_por_año.total_fob_por_año) * 100, 2) AS Porcentaje
+FROM
+    (
+        SELECT 
+            Year(Fecha_despacho) AS Año,
+            marcas.Nombre_Marca,
+            SUM(importacion.fob) AS Total_fob
+        FROM 
+            bd_importacion.importacion
+        JOIN 
+            bd_importacion.marcas ON importacion.id_marca = marcas.id_marca
+        JOIN 
+            bd_importacion.categoria_importacion on importacion.id_subcategoria=categoria_importacion.id_subcategoria
+        WHERE 
+            
+            {0}
+        GROUP BY 
+            Year(importacion.Fecha_despacho), marcas.Nombre_Marca
+    ) AS subconsulta
+JOIN 
+    (
+        SELECT 
+            Year(Fecha_despacho) AS Año,
+            SUM(fob) AS total_fob_por_año
+        FROM 
+            bd_importacion.importacion
+        JOIN 
+            bd_importacion.marcas ON importacion.id_marca = marcas.id_marca
+        JOIN 
+            bd_importacion.categoria_importacion on importacion.id_subcategoria=categoria_importacion.id_subcategoria
+        WHERE 
+            
+            {0}
+        GROUP BY 
+            Year(Fecha_despacho)
+    ) AS total_por_año ON subconsulta.Año = total_por_año.Año
+
+ORDER BY 
+    subconsulta.Año, subconsulta.Nombre_Marca;
+                               """.format(where_clause))
+        print("""SELECT 
     subconsulta.Año,
     subconsulta.Nombre_Marca,
     subconsulta.Total_fob,

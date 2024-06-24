@@ -46,16 +46,16 @@ class Pago(MethodView):
         datos=cursor.fetchone()
         pago={'id_pago':datos[0]}
         #Generacion de pago pendiente
-        fecha_actual = fecha_hasta
-        fecha_hasta = fecha_actual + timedelta(days=user_data['periodo']*30)
-        fecha_hastaf= fecha_hasta.strftime('%Y-%m-%d')
-        fecha_actual = fecha_actual.strftime('%Y-%m-%d')
-        with conexion.cursor() as cursor:
-            cursor.execute("""Insert into pagos(id_empresa,valor,descuento,periodo,fecha,procesado,intentos,detalle,cancelado,fecha_hasta) 
-                        values('{0}','{1}','{2}','{3}','{4}','{5}','{6}','{7}','{8}','{9}')"""
-                        .format(user_data['id_empresa'],user_data['valor'],user_data['descuento'],user_data['periodo'],fecha_actual,
-                                   0,user_data['intentos'],user_data['detalle'],0,fecha_hastaf))
-        conexion.commit()
+        #fecha_actual = fecha_hasta
+        #fecha_hasta = fecha_actual + timedelta(days=user_data['periodo']*30)
+        #fecha_hastaf= fecha_hasta.strftime('%Y-%m-%d')
+        #fecha_actual = fecha_actual.strftime('%Y-%m-%d')
+        #with conexion.cursor() as cursor:
+         #   cursor.execute("""Insert into pagos(id_empresa,valor,descuento,periodo,fecha,procesado,intentos,detalle,cancelado,fecha_hasta) 
+          #              values('{0}','{1}','{2}','{3}','{4}','{5}','{6}','{7}','{8}','{9}')"""
+           #             .format(user_data['id_empresa'],user_data['valor'],user_data['descuento'],user_data['periodo'],fecha_actual,
+            #                       0,user_data['intentos'],user_data['detalle'],0,fecha_hastaf))
+        #conexion.commit()
         return pago
 
 

@@ -92,6 +92,16 @@ class User(MethodView):
             facturacion.append(factura)
         return facturacion
 
-        
+@blp.route("/detalle-facturas-pago/<int:id>")
+class User(MethodView):
+    @blp.response(200)
+    @jwt_required()
+    def get(self,id):
+        cursor= obtener_conexion().cursor()
+        cursor.execute("Select id_factura from detalle_factura where id_pago={0}".format(id))
+        datos= cursor.fetchone()
+        cursor.close()
+        factura = {'id_factura':datos[0]}
+        return factura 
         
         

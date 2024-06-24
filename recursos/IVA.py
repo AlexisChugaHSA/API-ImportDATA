@@ -58,13 +58,13 @@ class Membresia(MethodView):
             return {"Mensaje": "IVA no encontrado"},409
             
 
-@blp.route("/iva/<int:id>")
+@blp.route("/iva")
 class User(MethodView):
-    @blp.response(200, IVASchema)
+    @blp.response(200)
     @jwt_required()
-    def get(self,id):
+    def get(self):
         cursor= obtener_conexion().cursor()
-        cursor.execute("Select iva_valor, id_iva from iva where id_iva={0}".format(id))
+        cursor.execute("Select iva_valor, id_iva from iva Order by id_iva DESC limit 1")
         datos=cursor.fetchone()
         cursor.close()
         if datos!=None:
