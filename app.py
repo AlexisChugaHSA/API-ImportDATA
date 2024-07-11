@@ -3,6 +3,7 @@ from flask import Flask, abort, render_template, request, redirect, jsonify
 from flask_jwt_extended import JWTManager, create_access_token, jwt_required, get_jwt, create_refresh_token, get_jwt_identity
 import secrets
 from passlib.hash import pbkdf2_sha256
+from flask_mail import Mail,Message
 from flask_smorest import Blueprint, abort
 from bd import obtener_conexion
 from flask_cors import CORS, cross_origin
@@ -35,6 +36,10 @@ from recursos.productos_imp import blp as ProductosImpBlueprint
 from recursos.tiendas_imp import blp as TiendasImpBlueprint
 from recursos.importacion_imp import blp as ImportacionImpBlueprint
 from recursos.consulta_imp import blp as ConsultaImpBlueprint
+from recursos.enviar_email import blp as EnviarEmailBlueprint
+from dotenv import load_dotenv
+import os
+
 
 app = Flask(__name__)
 app.debug = True
@@ -50,6 +55,16 @@ app.config["OPENAPI_URL_PREFIX"] = "/"
 app.config['JWT_ACCESS_TOKEN_EXPIRES'] = datetime.timedelta(seconds=36000)
 jwt = JWTManager(app)
 app.config["JWT_SECRET_KEY"] = str(secrets.SystemRandom().getrandbits(128))
+
+load_dotenv()
+# Configurar Flask-Mail
+app.config['MAIL_SERVER'] = 'smtp.gmail.com'
+app.config['MAIL_PORT'] = 587
+app.config['MAIL_USE_TLS'] = True
+app.config['MAIL_USERNAME'] = os.getenv('EMAIL_USER')
+app.config['MAIL_PASSWORD'] = os.getenv('EMAIL_PASS')
+app.config['MAIL_DEFAULT_SENDER'] = os.getenv('EMAIL_USER')
+
 app.register_blueprint(UserBlueprint)
 app.register_blueprint(CategoriaBlueprint)
 app.register_blueprint(CuponBlueprint)
@@ -78,9 +93,11 @@ app.register_blueprint(ProductosImpBlueprint)
 app.register_blueprint(TiendasImpBlueprint)
 app.register_blueprint(ImportacionImpBlueprint)
 app.register_blueprint(ConsultaImpBlueprint)
+app.register_blueprint(EnviarEmailBlueprint)
 
-
+mail = Mail(app)
 jwt = JWTManager(app)
+
 
 
 @jwt.expired_token_loader
