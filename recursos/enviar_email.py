@@ -2,7 +2,13 @@ from flask import  render_template_string, request, jsonify, render_template
 from flask_mail import Mail, Message
 from flask_smorest import Blueprint
 import smtplib
+from bd import obtener_conexion
 from email.mime.text import MIMEText
+import random
+import string
+import os
+from flask.views import MethodView
+from passlib.hash import pbkdf2_sha256
 
 blp = Blueprint("Enviar_email", "enviar_email", description="Operaciones con correos")
 
@@ -11,53 +17,108 @@ mail = Mail()
 
 
 
-@blp.route("/correo-bienvenida", methods=["POST"])
-def enviar_correo():
-    nombre_usuario = "Alexis Chuga"  # Aquí puedes obtener el nombre de usuario dinámicamente
-    url_inicio = "https://tu-plataforma.com/inicio"  # URL a la que debe dirigirse el usuario
-    html_template = """
+@blp.route("/correo-bienvenida")
+class CorreoBienvenida(MethodView):
+    def post(self):
+        user_data=request.get_json()
+        html_template = """
     <!DOCTYPE html>
     <html lang="es">
     <head>
         <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>Bienvenido a nuestra plataforma de Analítica de Datos</title>
-        <style>
-            /* Estilos CSS */
-        </style>
     </head>
     <body>
-        <div class="container">
-            <div class="header">
-                <h1>Bienvenido a nuestra plataforma de Analítica de Datos</h1>
-            </div>
-            <div class="content">
-                <p>¡Hola {{ nombre }}!</p>
-                <p>Estamos emocionados de tenerte como parte de nuestra comunidad.</p>
-                <p>Explora datos clave, descubre tendencias y optimiza decisiones estratégicas.</p>
-                <a href="{{ url}}" class="button">Comienza Ahora</a>
-            </div>
+        <div style="text-align: center; font-family: Arial, sans-serif;">
+            <h1 style="color: #f26723;">¡Bienvenido a Nuestra Plataforma de Analítica!</h1>
+            <p>Estamos encantados de darte la bienvenida a nuestra plataforma de analítica. Nos enorgullece que hayas elegido nuestra solución para tus necesidades de análisis de datos y estamos comprometidos a ofrecerte la mejor experiencia posible.</p>
+            
+            <p>Si tienes alguna pregunta o necesitas asistencia, no dudes en contactarnos. ¡Estamos aquí para ayudarte!</p>
+            
+            <a href="http://www.hsa.com.ec" style="color: #f26723;">www.hsa.com.ec</a>
+        </div>
+        <div style="font-size: small; color: gray; text-align: center; margin-top: 20px;">
+            <p>COMUNICACIÓN CONFIDENCIAL Y PRIVILEGIADA. Si usted no es la persona a quien se dirige esta comunicación o no está autorizada para leerla, favor notifíquenos por e-mail y elimine todas las copias del mensaje. Se prohíbe su reproducción, publicación o entrega por cualquier medio sin el consentimiento y autorización previa y escrita del remitente de la comunicación. Este mensaje es un mensaje confidencial y privilegiado entre hsa - cliente.</p>
+            <p>CONFIDENTIAL AND PRIVILEGED COMMUNICATION. If you have received this message in error or you are not authorized, please notify me by return e-mail, and destroy all copies (electronic or otherwise) of this mailing. Its reproduction, publication and/or sending by any means is prohibited unless the prior written approval of the message sender. This message shall be an hsa - client privileged communication.</p>
         </div>
     </body>
     </html>
-    """
-    rendered_html = render_template_string(html_template, nombre=nombre_usuario, url=url_inicio)
-    msg = Message("Bienvenida a la Plataforma", recipients=['alexis.chuga@hsa.com.ec'], sender="proyectonft867@gmail.com")
+        """
+        rendered_html = render_template_string(html_template)
+        msg = Message("¡Bienvenido a Nuestra Plataforma de Analítica!", recipients=[user_data['correo_usuario']], sender=os.getenv('EMAIL_USER'))
+        msg.html = rendered_html 
+        mail.send(msg)
+        return jsonify({"message": "Correo de bienvenida enviado !"}), 200
+
+
+@blp.route("/correo-restaurar-contrasenia/<int:id>", methods=["POST"])
+def enviar_correo(id):
+    user_data=request.get_json()
+    conexion = obtener_conexion()
+    cursor = conexion.cursor()
+    caracteres = string.ascii_letters + string.digits
+    contrasena_aux = ''.join(random.choice(caracteres) for _ in range(8))
+    contrasena = pbkdf2_sha256.hash(contrasena_aux)
+    cursor.execute("Update usuario set password='{0}' where id_usuario={1}".format( contrasena, id))
+    conexion.commit()
+    conexion.close()
+    msg = Message("Restaura tu contraseña", recipients=[user_data['correo_usuario']], sender=os.getenv('EMAIL_USER'))
+    html_template = """<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    
+</head>
+<body>
+    <div style="text-align: center; font-family: Arial, sans-serif;">
+        <h1 style="color: #f26723;">Contraseña Temporal</h1>
+        <p>Hemos recibido una solicitud para restablecer tu contraseña. Hemos generado una contraseña temporal para que puedas acceder a tu cuenta. Te recomendamos cambiar esta contraseña temporal por una nueva tan pronto como inicies sesión.</p>
+        <p style="font-weight: bold;">Tu contraseña temporal es: <span style="background-color: #f2f2f2; padding: 5px; border-radius: 5px;">{}</span></p>
+        <p>Inicia sesión en tu cuenta utilizando la contraseña temporal</p>
+        <p>Si tienes alguna pregunta o necesitas asistencia, no dudes en contactarnos. ¡Estamos aquí para ayudarte!</p>
+        
+        <a href="http://www.hsa.com.ec" style="color: #f26723;">www.hsa.com.ec</a></p>
+    </div>
+    <div style="font-size: small; color: gray; text-align: center; margin-top: 20px;">
+        <p>COMUNICACIÓN CONFIDENCIAL Y PRIVILEGIADA. Si usted no es la persona a quien se dirige esta comunicación o no está autorizada para leerla, favor notifíquenos por e-mail y elimine todas las copias del mensaje. Se prohíbe su reproducción, publicación o entrega por cualquier medio sin el consentimiento y autorización previa y escrita del remitente de la comunicación. Este mensaje es un mensaje confidencial y privilegiado entre hsa - cliente.</p>
+        <p>CONFIDENTIAL AND PRIVILEGED COMMUNICATION. If you have received this message in error or you are not authorized, please notify me by return e-mail, and destroy all copies (electronic or otherwise) of this mailing. Its reproduction, publication and/or sending by any means is prohibited unless the prior written approval of the message sender. This message shall be an hsa - client privileged communication.</p>
+    </div>
+</body>
+</html>""".format(contrasena_aux)
+    rendered_html = render_template_string(html_template)
     msg.html = rendered_html 
     mail.send(msg)
-    return jsonify({"message": "Correo enviado!"}), 200
-
-
-@blp.route("/correo-restaurar-contrasenia", methods=["POST"])
-def enviar_correo():
-    msg = Message("Bienvenida", recipients=['alexis.chuga@hsa.com.ec'], sender="proyectonft867@gmail.com")
-    msg.body = "Hola"
-    mail.send(msg)
-    return jsonify({"message": "Correo enviado!"}), 200
+    return jsonify({"message": "Correo de resetear contraseña enviado!"}), 200
 
 @blp.route("/producto-por-caducar", methods=["POST"])
-def enviar_correo():
-    msg = Message("Bienvenida", recipients=['alexis.chuga@hsa.com.ec'], sender="proyectonft867@gmail.com")
-    msg.body = "Hola"
+def enviar_correo(self,user_data):
+    msg = Message("¡Aviso Importante sobre la Caducidad de tus Productos!", recipients=[user_data['correo_usuario']], sender=os.getenv('EMAIL_USER'))
+    html_template = """<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+</head>
+<body>
+    <div style="text-align: center; font-family: Arial, sans-serif;">
+        <h1 style="color: #ff6347;">¡Aviso Importante sobre la Caducidad de tus Productos!</h1>
+        <p>Estimado cliente,</p>
+        <p>Queremos informarte que algunos de los productos en tu cuenta están próximos a caducar. Es importante que revises y tomes las acciones necesarias para evitar cualquier inconveniente.</p>
+        <p style="font-weight: bold;">Productos próximos a caducar:</p>
+        <ul style="list-style-type: none; padding: 0;">
+            <li style="background-color: #f2f2f2; padding: 10px; margin: 5px; border-radius: 5px;">Producto 1 - Fecha de caducidad: [Fecha1]</li>
+            <li style="background-color: #f2f2f2; padding: 10px; margin: 5px; border-radius: 5px;">Producto 2 - Fecha de caducidad: [Fecha2]</li>
+            <li style="background-color: #f2f2f2; padding: 10px; margin: 5px; border-radius: 5px;">Producto 3 - Fecha de caducidad: [Fecha3]</li>
+        </ul>
+        <p>Para más detalles, por favor revisa tu cuenta o contacta a nuestro equipo de soporte.</p>
+        <p>Gracias por tu atención.</p>
+        <a href="http://www.hsa.com.ec" style="color: #ff6347;">www.hsa.com.ec</a>
+    </div>
+    <div style="font-size: small; color: gray; text-align: center; margin-top: 20px;">
+        <p>COMUNICACIÓN CONFIDENCIAL Y PRIVILEGIADA. Si usted no es la persona a quien se dirige esta comunicación o no está autorizada para leerla, favor notifíquenos por e-mail y elimine todas las copias del mensaje. Se prohíbe su reproducción, publicación o entrega por cualquier medio sin el consentimiento y autorización previa y escrita del remitente de la comunicación. Este mensaje es un mensaje confidencial y privilegiado entre hsa - cliente.</p>
+        <p>CONFIDENTIAL AND PRIVILEGED COMMUNICATION. If you have received this message in error or you are not authorized, please notify me by return e-mail, and destroy all copies (electronic or otherwise) of this mailing. Its reproduction, publication and/or sending by any means is prohibited unless the prior written approval of the message sender. This message shall be an hsa - client privileged communication.</p>
+    </div>
+</body>
+</html> """
+    rendered_html = render_template_string(html_template)
+    msg.html = rendered_html 
     mail.send(msg)
     return jsonify({"message": "Correo enviado!"}), 200
