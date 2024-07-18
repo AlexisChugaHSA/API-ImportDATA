@@ -158,26 +158,3 @@ def generar_contrasena_aleatoria(longitud=8):
     contrasena = ''.join(random.choice(caracteres) for i in range(longitud))
     return contrasena
 
-@jwt_required()
-def enviar_correo_electronico(destinatario, asunto, cuerpo):
-    # Establecer los parámetros del servidor SMTP
-    servidor_smtp = 'smtp.gmail.com'
-    puerto_smtp = 587
-    remitente = 'proyectonft867@gmail.com'
-    contrasena = 'Escuel@p12345'
-
-    # Crear el objeto mensaje
-    mensaje = MIMEMultipart()
-    mensaje['From'] = remitente
-    mensaje['To'] = destinatario
-    mensaje['Subject'] = asunto
-
-    # Agregar el cuerpo del mensaje
-    mensaje.attach(MIMEText(str(cuerpo), 'plain'))
-
-    # Conectar con el servidor SMTP y enviar el mensaje
-    with smtplib.SMTP(servidor_smtp, puerto_smtp) as servidor:
-        servidor.starttls()
-        servidor.login(remitente, contrasena)
-        texto = mensaje.as_string()
-        servidor.sendmail(remitente, destinatario, texto)
