@@ -158,3 +158,18 @@ def generar_contrasena_aleatoria(longitud=8):
     contrasena = ''.join(random.choice(caracteres) for i in range(longitud))
     return contrasena
 
+
+@blp.route("/comprobar-usuario/<string:nombre>")
+class User(MethodView):
+    def get(self, nombre):
+        cursor = obtener_conexion().cursor()
+        print(nombre)
+        cursor.execute(
+            "Select id_usuario,usuario,token from usuario where usuario='{0}'".format(nombre))
+        datos = cursor.fetchone()
+        cursor.close()
+        if datos != None:
+            usuario = {'id_usuario': datos[0], "Mensaje": "SI"}
+            return usuario, 200
+        else:
+            return {"Mensaje": "NOEN"}, 409
