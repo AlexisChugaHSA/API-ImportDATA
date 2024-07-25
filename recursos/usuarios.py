@@ -77,8 +77,8 @@ class User(MethodView):
         # print(datos)
         if datos != None:
             password = pbkdf2_sha256.hash(user_data['password']),
-            cursor.execute("Update usuario set usuario='{0}', password='{1}' where id_usuario={2}".format(
-                user_data['usuario'], password[0], id))
+            cursor.execute("Update usuario set password='{0}' where id_usuario={1}".format(
+                 password[0], id))
             conexion.commit()
             conexion.close()
             return {"Mensaje": "Usuario actualizado"}, 200
