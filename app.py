@@ -1,6 +1,6 @@
 import datetime
 from flask import Flask, abort, render_template, request, redirect, jsonify
-from flask_jwt_extended import JWTManager, create_access_token, jwt_required, get_jwt, create_refresh_token, get_jwt_identity
+from flask_jwt_extended import JWTManager, create_access_token, jwt_required, get_jwt, create_refresh_token, get_jwt_identity,decode_token
 import secrets
 from passlib.hash import pbkdf2_sha256
 from flask_mail import Mail,Message
@@ -8,6 +8,7 @@ from flask_smorest import Blueprint, abort
 from bd import obtener_conexion
 from flask_cors import CORS, cross_origin
 from blocklist import BLOCKLIST
+from datetime import timedelta
 from recursos.usuarios import blp as UserBlueprint
 from recursos.categoria import blp as CategoriaBlueprint
 from recursos.cupon import blp as CuponBlueprint
@@ -54,7 +55,7 @@ app.config["OPENAPI_VERSION"] = "3.0.3"
 app.config["OPENAPI_URL_PREFIX"] = "/"
 app.config['JWT_ACCESS_TOKEN_EXPIRES'] = datetime.timedelta(seconds=36000)
 jwt = JWTManager(app)
-app.config["JWT_SECRET_KEY"] = str(secrets.SystemRandom().getrandbits(128))
+app.config["JWT_SECRET_KEY"] = "nsuEiHavMJQmJXMF"
 
 load_dotenv()
 # Configurar Flask-Mail
@@ -110,6 +111,7 @@ def expired_token_callback(jwt_header, jwt_payload):
 
 @jwt.invalid_token_loader
 def invalid_token_callback(error):
+    
     return (
         jsonify(
             {"message": "Signature verification failed.", "error": "invalid_token"}
@@ -187,11 +189,11 @@ def login():
         cursor.execute(
             "Select * from usuario where usuario='{0}' ORDER BY ID_USUARIO DESC LIMIT 1;".format(request.json['usuario']))
         datos = cursor.fetchone()
-        print(datos)
+        #print(datos)
     if datos != None and pbkdf2_sha256.verify(request.json["password"], datos[2]):
         if datos[3] == None:
-            access_token = create_access_token(identity=datos[0], fresh=True)
-            print(datos[0])
+            access_token = create_access_token(identity=datos[0], fresh=True, expires_delta=timedelta(hours=10))
+            #print(datos[0])
             with conexion.cursor() as cursor2:
                 cursor2.execute("""Update usuario Set token='{0}' where id_usuario={1}""".format(
                     access_token, datos[0]))
@@ -222,7 +224,7 @@ def leer_user():
             datos = cursor.fetchone()
         conexion.commit()
 
-        access_token = create_access_token(identity=datos[0], fresh=True)
+        access_token = create_access_token(identity=datos[0], fresh=True, expires_delta=timedelta(hours=10))
         with conexion.cursor() as cursor:
                 cursor.execute("""Update usuario Set token='{0}' where id_usuario={1}""".format(
                     access_token, datos[0]))

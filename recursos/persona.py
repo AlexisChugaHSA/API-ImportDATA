@@ -95,7 +95,7 @@ class Person(MethodView):
 @blp.route("/persona-by-user/<int:id>")
 class Person(MethodView):
     @blp.response(200, PersonaSchema)
-    #@jwt_required()
+    @jwt_required()
     def get(self,id):
         cursor= obtener_conexion().cursor()
         cursor.execute("Select id_persona,id_direccion,id_empresa,id_usuario,nombre,apellido,correo,telefono from persona where id_usuario={0}".format(id))
