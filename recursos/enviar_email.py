@@ -130,7 +130,7 @@ def enviar_correo():
     for usuario, productos in usuarios_productos.items():
             msg = Message("¡Aviso Importante sobre la Caducidad de tus Productos!", 
                           recipients=[usuario], 
-                          sender='proyectonft867@gmail.com')
+                          sender=os.getenv('EMAIL_USER'))
             html_template = """
             <!DOCTYPE html>
             <html lang="es">
