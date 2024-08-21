@@ -9,7 +9,6 @@ blp = Blueprint("Membresias", "membresias", description="Operaciones con membres
 @blp.route("/membresias")
 class MembresiaSchema(MethodView):
     @blp.response(200, MembresiasSchema(many=True))
-    @jwt_required()
     def get(self):
         membresias=[]
         cursor=obtener_conexion().cursor()
