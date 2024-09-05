@@ -578,7 +578,7 @@ ORDER BY
             importaciones.append(importacion)
         return importaciones
 
-@blp.route("/consulta-características-por-marca")
+@blp.route("/consulta-caracteristicas-por-marca")
 class Consulta_Imp(MethodView):
     @blp.arguments(ConsultaImpSch)
     @jwt_required()

@@ -8,15 +8,15 @@ from flask import Flask, abort, render_template, request, redirect, jsonify
 blp = Blueprint("Empresas", "empresa", description="Operaciones con empresas")
 
 
-@blp.route("/empresas")
+@blp.route("/empresas-fact/<int:id>")
 class Empresa_Schema(MethodView):
     @blp.response(200, EmpresaSchema(many=True))
     #@jwt_required()
-    def get(self):
+    def get(self,id):
         empresas = []
         cursor = obtener_conexion().cursor()
         cursor.execute(
-            "Select id_empresa,id_metodo_pago,nombre,direccion,telefono,correo,identificacion from empresa")
+            "Select * from facturacion")
         result = cursor.fetchall()
         cursor.close()
         for fila in result:
@@ -86,6 +86,21 @@ class User(MethodView):
         conexion.commit()
         conexion.close()
         return {"Mensaje": "Empresa eliminada"},200
+    
+@blp.route("/comprobar-empresa/<string:ruc>")
+class Empresa(MethodView):
+    def get(self, ruc):
+        cursor = obtener_conexion().cursor()
+        print(ruc)
+        cursor.execute(
+            "Select id_empresa from empresa where identificacion='{0}'".format(ruc))
+        datos = cursor.fetchone()
+        cursor.close()
+        if datos != None:
+            usuario = {'id_empresa': datos[0], "Mensaje": "SI"}
+            return usuario, 200
+        else:
+            return {"Mensaje": "NOEN"}, 409
 
         
         

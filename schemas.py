@@ -56,6 +56,11 @@ class FacturacionSchema(Schema):
     fecha=fields.Str()
     iva=fields.Float(required=True)
     iva_0=fields.Float(required=True)
+    ruc_empresa=fields.Str()
+    nombre_empresa=fields.Str()
+    telefono_empresa=fields.Str()
+    correo_empresa=fields.Str()
+    id_usuario=fields.Int()
 
 class IVASchema(Schema):
     id_IVA = fields.Int()
